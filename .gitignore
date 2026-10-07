@@ -155,3 +155,5 @@ vite.config.ts.timestamp-*
 *.db
 test-results/
 playwright-report/
+*.db-shm
+*.db-wal

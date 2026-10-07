@@ -160,6 +160,36 @@ describe("Home: leaderboard", () => {
 });
 
 describe("Home: dev login (dev builds only)", () => {
+  it("shows the dev profile and room controls after pressing Use", async () => {
+    api.me.mockResolvedValueOnce(null).mockResolvedValue({ id: "dev:alice", displayName: "alice", avatarUrl: null });
+    renderHome();
+    await screen.findByRole("link", { name: /Log in with Discord/ });
+    fireEvent.change(screen.getByLabelText("Dev login name"), { target: { value: "alice" } });
+    fireEvent.click(screen.getByRole("button", { name: "Use" }));
+    expect(await screen.findByRole("button", { name: "Create room" })).toBeTruthy();
+    expect(screen.getByText("Signed in with a dev login")).toBeTruthy();
+    expect(screen.getByText("alice")).toBeTruthy();
+  });
+
+  it("explains when the server rejects a dev login", async () => {
+    api.me.mockResolvedValue(null);
+    renderHome();
+    await screen.findByRole("link", { name: /Log in with Discord/ });
+    fireEvent.change(screen.getByLabelText("Dev login name"), { target: { value: "alice" } });
+    fireEvent.click(screen.getByRole("button", { name: "Use" }));
+    expect(await screen.findByText("Dev login is unavailable on this server. Start it with npm run dev.")).toBeTruthy();
+    expect(screen.queryByRole("button", { name: "Create room" })).toBeNull();
+  });
+
+  it("shows an error instead of silently failing when the server is unreachable", async () => {
+    api.me.mockResolvedValueOnce(null).mockRejectedValue(new Error("network down"));
+    renderHome();
+    await screen.findByRole("link", { name: /Log in with Discord/ });
+    fireEvent.change(screen.getByLabelText("Dev login name"), { target: { value: "alice" } });
+    fireEvent.click(screen.getByRole("button", { name: "Use" }));
+    expect(await screen.findByText("Could not sign in. Check that the development server is running and try again.")).toBeTruthy();
+  });
+
   it("stores the name for this tab and reloads the profile", async () => {
     renderHome();
     const input = (await screen.findByLabelText("Dev login name")) as HTMLInputElement;

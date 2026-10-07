@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { Card, SetId } from "../src/index.js";
-import { apply } from "../src/index.js";
+import { apply, playerView } from "../src/index.js";
 import { canonical, codeOf, makeGame, mutate, run } from "./helpers.js";
 
 // a1 (team A) is active. b1 holds 5H and QS, b2 holds 6H, b3 is out of cards.
@@ -57,17 +57,41 @@ describe("ask: success", () => {
 });
 
 describe("ask: failure", () => {
-  it("passes the turn to the target and records nothing", () => {
+  it("passes the turn and records the failed ask without a transfer", () => {
     const before = game();
     const { state, events } = run(before, ask("a1", "b2", "5H"));
     expect(state.phase).toEqual({ kind: "turn", player: "b2" });
     expect(state.hands).toEqual(before.hands);
     expect(state.history).toEqual([]);
     expect(state.transferCount).toBe(0);
+    expect(playerView(state, "a1").recentAsks).toEqual([
+      { seq: 1, asker: "a1", target: "b2", card: "5H", ok: false },
+    ]);
     expect(events).toEqual([
       { type: "askFailed", asker: "a1", target: "b2", card: "5H" },
       { type: "turnChanged", player: "b2" },
     ]);
+  });
+
+  it("keeps the latest asks, including successes and failures, across restored state", () => {
+    let state = makeGame({ hands: { a1: ["3H", "9S"], b1: ["5H", "QS", "2D"], b2: ["6H"] } });
+    state = run(state, ask("a1", "b1", "5H")).state;
+    state = run(state, ask("a1", "b2", "6H")).state;
+    state = run(state, ask("a1", "b1", "QS")).state;
+    state = JSON.parse(JSON.stringify(state));
+    const before = JSON.stringify(state);
+    const next = run(state, ask("a1", "b1", "JS")).state;
+    expect(JSON.stringify(state)).toBe(before);
+    expect(playerView(next, "b2").recentAsks).toEqual([
+      { seq: 2, asker: "a1", target: "b2", card: "6H", ok: true },
+      { seq: 3, asker: "a1", target: "b1", card: "QS", ok: true },
+      { seq: 4, asker: "a1", target: "b1", card: "JS", ok: false },
+    ]);
+    expect(next.transferCount).toBe(3);
+    expect(next.history.map((transfer) => transfer.seq)).toEqual([1, 2, 3]);
+    const view = playerView(next, "a1");
+    view.recentAsks[0]!.card = "2C";
+    expect(playerView(next, "a1").recentAsks[0]!.card).toBe("6H");
   });
 });
 

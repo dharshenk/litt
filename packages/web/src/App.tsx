@@ -2,6 +2,7 @@ import type { ComponentType } from "react";
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import { ToastProvider } from "./components/Toasts.js";
 import { Home } from "./pages/Home.js";
+import { Rules } from "./pages/Rules.js";
 import { RoomPage } from "./pages/RoomPage.js";
 
 export function App({ DevPanel }: { DevPanel?: ComponentType }) {
@@ -11,6 +12,7 @@ export function App({ DevPanel }: { DevPanel?: ComponentType }) {
         <div className="app">
           <Routes>
             <Route path="/" element={<Home />} />
+            <Route path="/rules" element={<Rules />} />
             <Route path="/r/:code" element={<RoomPage />} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>

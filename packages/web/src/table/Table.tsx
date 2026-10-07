@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
-import type { Assignment, Card, PlayerView, SetId, Team } from "@litt/engine";
+import { getRecentAsks, type Assignment, type Card, type PlayerView, type SetId, type Team } from "@litt/engine";
 import type { ClientMessage, RoomSnapshot } from "@litt/protocol";
 import { useIsMobile, useFocusTrap, usePrevious } from "../lib/hooks.js";
 import { playSound } from "../lib/sound.js";
@@ -17,7 +17,7 @@ import { ToastViewport } from "../components/Toasts.js";
 import { Header } from "./Header.js";
 import { PlayerRow, SetsPanel } from "./Board.js";
 import { Hand } from "./Hand.js";
-import { ActionPanel, Transfers } from "./Panel.js";
+import { ActionPanel, Transactions } from "./Panel.js";
 import { ReviewModal } from "./ReviewModal.js";
 import { AskSpotlight, type Spot } from "./AskSpotlight.js";
 import styles from "./Table.module.css";
@@ -89,6 +89,7 @@ export function Table({ room, view, deadline, namer, send, spot, onSpotDone, uiK
   const iChoose = canIChoose(view);
   const [ui, setUi] = useState<TableUi>(() => freshUi(initialTab));
   const [sheet, setSheet] = useState(false);
+  const [setsOpen, setSetsOpen] = useState(false);
   const [pending, setPending] = useState(false);
   const sel = select(view, ui);
 
@@ -109,6 +110,7 @@ export function Table({ room, view, deadline, namer, send, spot, onSpotDone, uiK
     firstKey.current = uiKey;
     setUi(freshUi(initialTab));
     setSheet(false);
+    setSetsOpen(false);
   }, [uiKey]);
 
   // Phones: the sheet opens for the chooser, and closes when there's nothing to do.
@@ -158,6 +160,12 @@ export function Table({ room, view, deadline, namer, send, spot, onSpotDone, uiK
     ? ([...view.recentTransfers].reverse().find((t) => t.card === spot.card && t.to === spot.asker && t.from === spot.target)
         ?.seq ?? null)
     : null;
+  const attempts = getRecentAsks(view);
+  const nowAskSeq = spot
+    ? ([...attempts].reverse().find((attempt) =>
+        attempt.card === spot.card && attempt.asker === spot.asker && attempt.target === spot.target && attempt.ok === spot.ok,
+      )?.seq ?? null)
+    : null;
 
   const panel = (
     <ActionPanel
@@ -180,6 +188,17 @@ export function Table({ room, view, deadline, namer, send, spot, onSpotDone, uiK
       <Header room={room} view={view} deadline={deadline} namer={namer} mobile={mobile} />
       <div className={styles.body}>
         <main className={styles.main}>
+          <div className={styles.tableTools}>
+            <button
+              type="button"
+              className={styles.setsButton}
+              aria-haspopup="dialog"
+              aria-expanded={setsOpen}
+              onClick={() => setSetsOpen(true)}
+            >
+              Sets
+            </button>
+          </div>
           <PlayerRow
             label={`Opponents · Team ${other}`}
             team={other}
@@ -189,7 +208,6 @@ export function Table({ room, view, deadline, namer, send, spot, onSpotDone, uiK
             mobile={mobile}
             askingTarget={askingTarget}
           />
-          <SetsPanel sets={view.sets} />
           <PlayerRow
             label={`Your team · Team ${view.myTeam}`}
             team={view.myTeam}
@@ -200,11 +218,11 @@ export function Table({ room, view, deadline, namer, send, spot, onSpotDone, uiK
             askingTarget={null}
           />
           {mobile && (
-            <Transfers
-              transfers={view.recentTransfers}
+            <Transactions
+              attempts={attempts}
               limit={view.config.historyLimit}
               namer={namer}
-              nowSeq={spotSeq}
+              nowSeq={nowAskSeq}
               inline
             />
           )}
@@ -213,7 +231,7 @@ export function Table({ room, view, deadline, namer, send, spot, onSpotDone, uiK
         {!mobile && (
           <aside className={styles.aside} aria-label="Actions">
             <div className={styles.panel}>{panel}</div>
-            <Transfers transfers={view.recentTransfers} limit={view.config.historyLimit} namer={namer} nowSeq={spotSeq} />
+            <Transactions attempts={attempts} limit={view.config.historyLimit} namer={namer} nowSeq={nowAskSeq} />
           </aside>
         )}
       </div>
@@ -231,6 +249,7 @@ export function Table({ room, view, deadline, namer, send, spot, onSpotDone, uiK
         />
       )}
       {sheetVisible && <Sheet onClose={() => setSheet(false)}>{panel}</Sheet>}
+      {setsOpen && <SetsModal view={view} onClose={() => setSetsOpen(false)} />}
 
       <AskSpotlight spot={spot} namer={namer} teamOf={teamOf} transferSeq={spotSeq} onDone={onSpotDone} />
       <ToastViewport placement="game" />
@@ -245,6 +264,29 @@ export function Table({ room, view, deadline, namer, send, spot, onSpotDone, uiK
           onConfirm={declare}
         />
       )}
+    </div>
+  );
+}
+
+function SetsModal({ view, onClose }: { view: PlayerView; onClose(): void }) {
+  const ref = useRef<HTMLDivElement>(null);
+  useFocusTrap(ref, true, onClose);
+  return (
+    <div className={styles.setsScrim} onClick={onClose}>
+      <div
+        ref={ref}
+        className={styles.setsDialog}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="sets-title"
+        onClick={(event) => event.stopPropagation()}
+      >
+        <div className={styles.setsDialogHead}>
+          <h2 id="sets-title">Sets</h2>
+          <button type="button" className={styles.setsButton} onClick={onClose}>Close</button>
+        </div>
+        <SetsPanel sets={view.sets} />
+      </div>
     </div>
   );
 }

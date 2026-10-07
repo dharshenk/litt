@@ -22,7 +22,7 @@ Optional environment settings can be copied from `.env.example` to `.env`. The s
 3. Under OAuth2, register `http://localhost:8787/auth/callback` and the production callback URL.
 4. Set `DISCORD_CLIENT_ID`, `DISCORD_CLIENT_SECRET`, and a high-entropy `SESSION_SECRET`. Set `PUBLIC_BASE_URL` to the externally visible origin and `DATABASE_PATH` to the SQLite database path.
 
-When `DISCORD_CLIENT_ID` is unset, development uses the per-tab dev identity. The Node server refuses to use dev accounts when `NODE_ENV=production`.
+`npm run dev` sets `NODE_ENV=development` and uses temporary, per-tab dev accounts even when Discord credentials are present in `.env`. Without an explicit development mode, an unset `DISCORD_CLIENT_ID` also selects dev accounts. Production (`NODE_ENV=production`) requires Discord authentication and never accepts dev identities.
 
 ## Commands
 

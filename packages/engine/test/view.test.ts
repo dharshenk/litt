@@ -64,7 +64,7 @@ describe("playerView", () => {
   it("has exactly the PlayerView keys and no hands or hand sizes", () => {
     const view = playerView(game(), "a1");
     expect(Object.keys(view).sort()).toEqual(
-      ["config", "hand", "me", "myTeam", "phase", "players", "recentTransfers", "resolutions", "scores", "sets", "transferCount"].sort(),
+      ["config", "hand", "me", "myTeam", "phase", "players", "recentAsks", "recentTransfers", "resolutions", "scores", "sets", "transferCount"].sort(),
     );
     expect(snapshot(view)).not.toMatch(/"hands"|handSize/);
   });

@@ -7,7 +7,7 @@
   "scripts": {
     "test": "npm test --workspaces",
     "typecheck": "npm run typecheck --workspaces",
-    "dev": "concurrently -k -n server,web \"node --import dotenv/config --import tsx --watch packages/server/src/node/main.ts\" \"npm run dev --workspace @litt/web\"",
+    "dev": "concurrently -k -n server,web \"NODE_ENV=development node --import dotenv/config --import tsx --watch packages/server/src/node/main.ts\" \"npm run dev --workspace @litt/web\"",
     "build": "npm run build --workspace @litt/web",
     "start": "node --import dotenv/config --import tsx packages/server/src/node/main.ts",
     "test:e2e": "playwright test"

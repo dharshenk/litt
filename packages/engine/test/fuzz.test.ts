@@ -136,7 +136,10 @@ describe("fuzz: random legal playouts", () => {
       const result = apply(state, nextAction(state, rng), rng);
       if (!result.ok) throw new Error(result.error.message);
       state = result.state;
-      const publicCards = new Set(state.history.map((t) => t.card));
+      const publicCards = new Set([
+        ...state.history.map((transfer) => transfer.card),
+        ...playerView(state, state.players[0]!.id).recentAsks.map((attempt) => attempt.card),
+      ]);
       for (const viewer of state.players) {
         const json = snapshot(playerView(state, viewer.id));
         for (const other of state.players) {

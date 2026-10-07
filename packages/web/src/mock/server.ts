@@ -2,7 +2,7 @@
 // It replays hand-written fixtures and answers a few messages with simple scripted
 // responses so the UI can be clicked through. It is not a rules engine.
 
-import { SET_IDS, setOf, type GameEvent, type PlayerView } from "@litt/engine";
+import { SET_IDS, getRecentAsks, setOf, type GameEvent, type PlayerView, type ViewWithAsks } from "@litt/engine";
 import type { ClientMessage, RoomSnapshot, ServerErrorCode, ServerMessage } from "@litt/protocol";
 import { sortCards } from "../lib/cards.js";
 import { askProblem, isMyTurn } from "../game/legal.js";
@@ -101,7 +101,19 @@ export class MockServer {
   /** Events first, then the new view: the same order as the real server. */
   apply(events: GameEvent[], view: PlayerView, room?: RoomSnapshot): void {
     events.forEach((event) => this.broadcast({ t: "game.event", event }));
-    this.view = view;
+    const recentAsks = [...getRecentAsks(this.view ?? view)];
+    for (const event of events) {
+      if (event.type !== "askSucceeded" && event.type !== "askFailed") continue;
+      recentAsks.push({
+        seq: (recentAsks.at(-1)?.seq ?? 0) + 1,
+        asker: event.asker,
+        target: event.target,
+        card: event.card,
+        ok: event.type === "askSucceeded",
+      });
+    }
+    const next: ViewWithAsks = { ...view, recentAsks: recentAsks.slice(-view.config.historyLimit) };
+    this.view = next;
     this.deadline = view.phase.kind === "over" ? null : this.nextDeadline();
     this.armClock();
     if (room) {

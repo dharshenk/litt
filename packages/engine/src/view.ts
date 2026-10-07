@@ -1,11 +1,12 @@
 import { clone } from "./clone.js";
-import type { GameState, PlayerView } from "./types.js";
+import { getAskHistory, type ViewWithAsks } from "./asks.js";
+import type { GameState } from "./types.js";
 
 /**
  * The hidden-information filter: the only shape of a game that may leave the server.
  * Other players' hands and all hand sizes are omitted; only out-of-cards is public.
  */
-export function playerView(state: GameState, playerId: string): PlayerView {
+export function playerView(state: GameState, playerId: string): ViewWithAsks {
   const me = state.players.find((p) => p.id === playerId);
   if (!me) throw new Error(`Unknown player: ${playerId}`);
   return {
@@ -21,6 +22,7 @@ export function playerView(state: GameState, playerId: string): PlayerView {
     scores: { A: state.scores.A, B: state.scores.B },
     phase: clone(state.phase),
     recentTransfers: state.history.map((t) => ({ seq: t.seq, from: t.from, to: t.to, card: t.card })),
+    recentAsks: getAskHistory(state).map((attempt) => ({ ...attempt })),
     transferCount: state.transferCount,
     resolutions: state.resolutions.map((r) => ({ ...r })),
     config: {

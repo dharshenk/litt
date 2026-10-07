@@ -1,5 +1,5 @@
 import { useId } from "react";
-import { cardsInSet, type Card, type PlayerView, type SetId, type Transfer } from "@litt/engine";
+import { cardsInSet, type AskAttempt, type Card, type PlayerView, type SetId } from "@litt/engine";
 import { cardLabel, setInfo } from "../lib/cards.js";
 import {
   assignableTeammates,
@@ -275,8 +275,8 @@ function DeclarePanel({ view, ui, sel, namer, pending, patch, onReview }: PanelP
   );
 }
 
-interface TransfersProps {
-  transfers: Transfer[];
+interface TransactionsProps {
+  attempts: AskAttempt[];
   limit: number;
   namer: Namer;
   /** seq of the transfer currently in the spotlight. */
@@ -285,26 +285,28 @@ interface TransfersProps {
   inline?: boolean;
 }
 
-export function Transfers({ transfers, limit, namer, nowSeq, inline }: TransfersProps) {
-  const rows = [...transfers].sort((a, b) => b.seq - a.seq).slice(0, limit);
+export function Transactions({ attempts, limit, namer, nowSeq, inline }: TransactionsProps) {
+  const rows = [...attempts].sort((first, second) => second.seq - first.seq).slice(0, limit);
   return (
-    <section className={inline ? styles.transfersInline : styles.transfers} aria-label="Recent transfers">
+    <section className={inline ? styles.transfersInline : styles.transfers} aria-label="Recent transactions">
       <div className={styles.transfersHead}>
-        <span className="label">Recent transfers</span>
+        <span className="label">Recent transactions</span>
         <span className={styles.transfersMeta}>last {limit}</span>
       </div>
-      {rows.length === 0 && <span className={styles.noTransfers}>No transfers yet.</span>}
+      {rows.length === 0 && <span className={styles.noTransfers}>No transactions yet.</span>}
       <ol className={styles.transferList}>
-        {rows.map((t, i) => {
-          const now = t.seq === nowSeq && i === 0;
+        {rows.map((attempt, index) => {
+          const now = attempt.seq === nowSeq && index === 0;
           return (
-            <li key={t.seq} className={styles.transfer} data-now={now || undefined} style={{ opacity: 1 - i * 0.15 }}>
-              {!inline && <span className={styles.seq}>#{t.seq}</span>}
+            <li key={attempt.seq} className={styles.transfer} data-now={now || undefined} data-ok={attempt.ok}>
+              {!inline && <span className={styles.seq}>#{attempt.seq}</span>}
               <span className={styles.route}>
-                {namer.name(t.from)} <span className={styles.arrow}>→</span> {namer.name(t.to)}
+                {namer.name(attempt.ok ? attempt.target : attempt.asker)} <span className={styles.arrow}>→</span>{" "}
+                {namer.name(attempt.ok ? attempt.asker : attempt.target)}
               </span>
-              {!inline && <span className={styles.nowTag}>{now ? "Now" : ""}</span>}
-              <CardChip card={t.card} />
+              {now && !inline && <span className={styles.nowTag}>Now</span>}
+              <CardChip card={attempt.card} />
+              <span className={styles.outcome}>{attempt.ok ? "Received" : "Failed"}</span>
             </li>
           );
         })}

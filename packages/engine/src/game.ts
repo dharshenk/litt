@@ -1,6 +1,7 @@
 import { ALL_CARDS, SET_IDS, cardsInSet, isCard, isSetId, setOf } from "./cards.js";
 import type { Card, SetId } from "./cards.js";
 import { clone } from "./clone.js";
+import { recordAsk } from "./asks.js";
 import { pick } from "./rng.js";
 import type {
   Action,
@@ -192,7 +193,9 @@ function ask(state: GameState, { player, target, card }: AskAction): ApplyResult
   }
 
   const next = clone(state);
-  if (!handOf(next, target).includes(card)) {
+  const ok = handOf(next, target).includes(card);
+  recordAsk(next, { asker: player, target, card, ok });
+  if (!ok) {
     next.phase = { kind: "turn", player: target };
     return {
       ok: true,

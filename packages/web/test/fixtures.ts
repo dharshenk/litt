@@ -1,4 +1,4 @@
-import type { Card, GameConfig, Phase, PlayerView, SetId, SetResolution, SetStatus, Team } from "@litt/engine";
+import type { AskAttempt, Card, GameConfig, Phase, PlayerView, SetId, SetResolution, SetStatus, Team, ViewWithAsks } from "@litt/engine";
 import { SET_IDS } from "@litt/engine";
 import { DEFAULT_ROOM_CONFIG, type RoomConfig, type RoomPlayer, type RoomSnapshot } from "@litt/protocol";
 import { sortCards } from "../src/lib/cards.js";
@@ -27,12 +27,13 @@ export interface ViewOptions {
   out?: string[];
   config?: Partial<GameConfig>;
   transfers?: PlayerView["recentTransfers"];
+  asks?: AskAttempt[];
   transferCount?: number;
   resolutions?: SetResolution[];
   scores?: PlayerView["scores"];
 }
 
-export function makeView(o: ViewOptions = {}): PlayerView {
+export function makeView(o: ViewOptions = {}): PlayerView & Partial<ViewWithAsks> {
   const hand = sortCards(o.hand ?? DEFAULT_HAND);
   const sets = Object.fromEntries(SET_IDS.map((s) => [s, "ACTIVE"])) as Record<SetId, SetStatus>;
   Object.assign(sets, o.sets);
@@ -49,6 +50,7 @@ export function makeView(o: ViewOptions = {}): PlayerView {
     scores: o.scores ?? { A: 0, B: 0 },
     phase: o.phase ?? { kind: "turn", player: "me" },
     recentTransfers: o.transfers ?? [],
+    ...(o.asks ? { recentAsks: o.asks } : {}),
     transferCount: o.transferCount ?? o.transfers?.length ?? 0,
     resolutions: o.resolutions ?? [],
     config: { wrongDeclaration: "award", historyLimit: 3, ...o.config },

@@ -258,9 +258,9 @@
 }
 
 .transfersInline {
-  padding: 12px 14px;
-  border-radius: 12px;
-  background: var(--surf);
+  padding: 12px 0;
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
   display: flex;
   flex-direction: column;
   gap: 7px;
@@ -319,6 +319,21 @@
   background: color-mix(in oklch, var(--ok) 14%, transparent);
 }
 
+.transfer[data-now][data-ok="false"] {
+  background: color-mix(in oklch, var(--bad) 14%, transparent);
+}
+
+.outcome {
+  flex: none;
+  font: 500 11px var(--font-ui);
+  color: var(--ok);
+}
+
+.transfer[data-ok="false"] .outcome,
+.transfer[data-ok="false"] .nowTag {
+  color: var(--bad);
+}
+
 .transfersInline .transfer {
   justify-content: space-between;
   font-size: 12px;
@@ -335,13 +350,8 @@
 .route {
   flex: 1;
   min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.transfersInline .route {
-  flex: initial;
+  overflow-wrap: anywhere;
+  line-height: 1.4;
 }
 
 .arrow {

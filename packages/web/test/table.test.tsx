@@ -2,11 +2,13 @@ import { act, fireEvent, render, screen, within } from "@testing-library/react";
 import type { ComponentProps } from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import type { Card, PlayerView, SetId } from "@litt/engine";
+import { getRecentAsks } from "@litt/engine";
 import type { ClientMessage } from "@litt/protocol";
 import { ToastProvider } from "../src/components/Toasts.js";
 import { cardLabel, setInfo } from "../src/lib/cards.js";
 import { Table } from "../src/table/Table.js";
 import { AskSpotlight, type Spot } from "../src/table/AskSpotlight.js";
+import { MockServer } from "../src/mock/server.js";
 import { makeRoom, makeView, namerFor, type ViewOptions } from "./fixtures.js";
 import { setMobile } from "./viewport.js";
 
@@ -40,13 +42,28 @@ const button = (name: string | RegExp) => screen.getByRole("button", { name }) a
 const setChip = (set: SetId) => radio(setInfo(set).name);
 const cardLabels = (el: HTMLElement) => within(el).getAllByRole("img").map((c) => c.getAttribute("aria-label"));
 
+describe("Mock transactions", () => {
+  it("keeps successful and failed scripted asks in one bounded history", () => {
+    const server = new MockServer();
+    const view = makeView({ config: { historyLimit: 2 } });
+    server.load(makeRoom({ config: { turnSeconds: null } }), view);
+    server.apply([{ type: "askSucceeded", asker: "maya", target: "bob", card: "2C" }], view);
+    server.apply([{ type: "askFailed", asker: "maya", target: "bob", card: "3C" }], view);
+    server.apply([{ type: "askFailed", asker: "bob", target: "eve", card: "4C" }], view);
+    expect(getRecentAsks(server.current().view!)).toEqual([
+      { seq: 2, asker: "maya", target: "bob", card: "3C", ok: false },
+      { seq: 3, asker: "bob", target: "eve", card: "4C", ok: false },
+    ]);
+  });
+});
+
 describe("Table: hand", () => {
   it("groups my hand by set, in canonical order", () => {
     renderTable();
     const hand = screen.getByRole("region", { name: "Your hand" });
     const groups = within(hand)
-      .getAllByText(/\((2–7|9–A)\)|8s & Jokers/)
-      .map((label) => [label.textContent, cardLabels(label.parentElement!)]);
+      .getAllByRole("group")
+      .map((group) => [group.getAttribute("aria-label"), cardLabels(group)]);
     expect(groups).toEqual([
       [setInfo("LOW_H").full, ["3H", "7H"].map((c) => cardLabel(c as Card))],
       [setInfo("HIGH_C").full, [cardLabel("KC")]],
@@ -56,8 +73,9 @@ describe("Table: hand", () => {
 
   it("labels the eights and jokers group", () => {
     renderTable({ hand: ["8C", "JK1", "JK2"] });
-    const label = screen.getByText("8s & Jokers");
-    expect(cardLabels(label.parentElement!)).toEqual([cardLabel("8C"), "Red Joker", "Black Joker"]);
+    const group = screen.getByRole("group", { name: "8s & Jokers" });
+    expect(cardLabels(group)).toEqual([cardLabel("8C"), "Red Joker", "Black Joker"]);
+    expect(within(group).getByLabelText("3 of 6 held").textContent).toBe("3 / 6");
   });
 
   it("says so when I am out of cards", () => {
@@ -68,9 +86,9 @@ describe("Table: hand", () => {
   it("lifts the group of the set being asked about", () => {
     renderTable();
     fireEvent.click(setChip("LOW_H"));
-    const group = screen.getByText(setInfo("LOW_H").full).parentElement!;
+    const group = screen.getByRole("group", { name: setInfo("LOW_H").full });
     expect(group.hasAttribute("data-lifted")).toBe(true);
-    expect(screen.getByText(setInfo("HIGH_S").full).parentElement!.hasAttribute("data-lifted")).toBe(false);
+    expect(screen.getByRole("group", { name: setInfo("HIGH_S").full }).hasAttribute("data-lifted")).toBe(false);
   });
 });
 
@@ -94,8 +112,27 @@ describe("Table: players, sets and header", () => {
   it("shows the score and the resolved sets", () => {
     renderTable({ sets: { LOW_D: "WON_A", HIGH_H: "WON_B", LOW_S: "NULL" }, scores: { A: 1, B: 1 } });
     expect(screen.getByLabelText("Score: Team A 1, Team B 1")).toBeTruthy();
+    expect(screen.queryByRole("region", { name: "Sets" })).toBeNull();
+    fireEvent.click(button("Sets"));
+    const dialog = screen.getByRole("dialog", { name: "Sets" });
+    expect(within(dialog).getAllByRole("listitem")).toHaveLength(9);
     expect(screen.getByText("6 active · 3 resolved")).toBeTruthy();
     expect(screen.getByText("Null")).toBeTruthy();
+  });
+
+  it("closes the sets popup with its button or Escape and restores focus", () => {
+    renderTable();
+    const trigger = button("Sets");
+    trigger.focus();
+    fireEvent.click(trigger);
+    expect(trigger.getAttribute("aria-expanded")).toBe("true");
+    fireEvent.click(within(screen.getByRole("dialog", { name: "Sets" })).getByRole("button", { name: "Close" }));
+    expect(screen.queryByRole("dialog", { name: "Sets" })).toBeNull();
+    expect(document.activeElement).toBe(trigger);
+    fireEvent.click(trigger);
+    fireEvent.keyDown(screen.getByRole("dialog", { name: "Sets" }), { key: "Escape" });
+    expect(screen.queryByRole("dialog", { name: "Sets" })).toBeNull();
+    expect(document.activeElement).toBe(trigger);
   });
 
   it("header says whose turn it is", () => {
@@ -141,7 +178,7 @@ describe("Table: players, sets and header", () => {
   });
 });
 
-describe("Table: recent transfers", () => {
+describe("Table: recent transactions", () => {
   const transfers = [
     { seq: 12, from: "bob", to: "maya", card: "6C" as Card },
     { seq: 13, from: "priya", to: "eve", card: "JS" as Card },
@@ -150,7 +187,7 @@ describe("Table: recent transfers", () => {
 
   it("lists them newest first, numbered by seq", () => {
     renderTable({ transfers, transferCount: 14 });
-    const region = screen.getByRole("region", { name: "Recent transfers" });
+    const region = screen.getByRole("region", { name: "Recent transactions" });
     const rows = within(region).getAllByRole("listitem");
     expect(rows.map((r) => r.textContent)).toEqual([
       expect.stringContaining("#14"),
@@ -163,13 +200,39 @@ describe("Table: recent transfers", () => {
 
   it("only shows historyLimit entries", () => {
     renderTable({ transfers, transferCount: 14, config: { historyLimit: 2 } });
-    const region = screen.getByRole("region", { name: "Recent transfers" });
+    const region = screen.getByRole("region", { name: "Recent transactions" });
     expect(within(region).getAllByRole("listitem")).toHaveLength(2);
   });
 
   it("says when there are none", () => {
     renderTable();
-    expect(screen.getByText("No transfers yet.")).toBeTruthy();
+    expect(screen.getByText("No transactions yet.")).toBeTruthy();
+  });
+
+  it("includes failed asks in the latest three rather than retaining older successes", () => {
+    renderTable({ transfers, asks: [
+      { seq: 12, asker: "maya", target: "bob", card: "6C", ok: true },
+      { seq: 13, asker: "eve", target: "priya", card: "JS", ok: true },
+      { seq: 14, asker: "maya", target: "bob", card: "2C", ok: true },
+      { seq: 15, asker: "maya", target: "bob", card: "3C", ok: false },
+    ] });
+    const rows = within(screen.getByRole("region", { name: "Recent transactions" })).getAllByRole("listitem");
+    expect(rows).toHaveLength(3);
+    expect(rows.map((row) => row.textContent)).toEqual([
+      expect.stringContaining("#15Maya → Bob"),
+      expect.stringContaining("#14Bob → Maya"),
+      expect.stringContaining("#13Priya → Eve"),
+    ]);
+    expect(within(rows[0]!).getByText("Failed")).toBeTruthy();
+    expect(within(rows[1]!).getByText("Received")).toBeTruthy();
+  });
+
+  it("tags a failed ask Now while its spotlight is up", () => {
+    const spot: Spot = { id: 1, asker: "maya", target: "bob", card: "3C", ok: false };
+    renderTable({ asks: [{ seq: 1, asker: "maya", target: "bob", card: "3C", ok: false }] }, { spot });
+    const row = within(screen.getByRole("region", { name: "Recent transactions" })).getByRole("listitem");
+    expect(within(row).getByText("Now")).toBeTruthy();
+    expect(row.getAttribute("data-ok")).toBe("false");
   });
 
   it("tags the newest transfer 'Now' while its spotlight is up", () => {
@@ -471,7 +534,7 @@ describe("Table: phone layout", () => {
   it("shows the transfers inline above the hand", () => {
     setMobile(true);
     renderTable({ transfers: [{ seq: 1, from: "bob", to: "maya", card: "2C" }], transferCount: 1 });
-    const region = screen.getByRole("region", { name: "Recent transfers" });
+    const region = screen.getByRole("region", { name: "Recent transactions" });
     expect(region.textContent).toContain("Bob → Maya");
   });
 

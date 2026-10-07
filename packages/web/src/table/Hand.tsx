@@ -44,7 +44,11 @@ export function Hand({ hand, focusSet, deal }: Props) {
             const info = setInfo(g.set);
             const lifted = focusSet === g.set;
             return (
-              <div key={g.set} className={styles.group} data-lifted={lifted || undefined}>
+              <div key={g.set} className={styles.group} role="group" aria-label={info.full} data-lifted={lifted || undefined}>
+                <div className={styles.groupHead}>
+                  <span className={styles.groupLabel}>{info.full}</span>
+                  <span className={styles.groupCount} aria-label={`${g.cards.length} of 6 held`}>{g.cards.length} / 6</span>
+                </div>
                 <div className={styles.cards}>
                   {g.cards.map((card, i) => {
                     const anim = anims.current.get(card) ?? "none";
@@ -58,7 +62,6 @@ export function Hand({ hand, focusSet, deal }: Props) {
                     );
                   })}
                 </div>
-                <span className={styles.groupLabel}>{info.full}</span>
               </div>
             );
           })}

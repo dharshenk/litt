@@ -1,5 +1,5 @@
 import { useEffect, useState, type FormEvent } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import type { PlayerStats, UserProfile } from "@litt/protocol";
 import { DEV_NAME_PATTERN, api, getDevUser, loginUrl, setDevUser } from "../lib/api.js";
 import { Avatar } from "../components/Avatar.js";
@@ -21,8 +21,20 @@ export function Home() {
   useEffect(() => {
     let live = true;
     api.me().then(
-      (u) => live && setMe(u),
-      () => live && setMe(null),
+      (user) => {
+        if (!live) return;
+        setMe(user);
+        if (reload > 0 && getDevUser() && user === null) {
+          push("Dev login is unavailable on this server. Start it with npm run dev.", "error");
+        }
+      },
+      () => {
+        if (!live) return;
+        setMe(null);
+        if (reload > 0 && getDevUser()) {
+          push("Could not sign in. Check that the development server is running and try again.", "error");
+        }
+      },
     );
     api.stats().then(
       (s) => live && setStats(s),
@@ -108,7 +120,15 @@ export function Home() {
               </form>
             </div>
           )}
-          {import.meta.env.DEV && <DevLogin onChange={() => setReload((n) => n + 1)} />}
+          <Link to="/rules" className={styles.rules}>
+            How to play →
+          </Link>
+          {import.meta.env.DEV && (
+            <DevLogin onChange={() => {
+              setMe(undefined);
+              setReload((value) => value + 1);
+            }} />
+          )}
         </div>
         {me && (
           <div className={styles.profile}>

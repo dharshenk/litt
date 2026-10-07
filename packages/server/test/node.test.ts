@@ -3,7 +3,7 @@ import { tmpdir } from "node:os";
 import { join, sep } from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
 import { createDevAccounts } from "../src/dev-accounts.js";
-import { startNodeServer } from "../src/node/main.js";
+import { createNodeAccounts, startNodeServer } from "../src/node/main.js";
 
 const servers: Awaited<ReturnType<typeof startNodeServer>>[] = [];
 const directories: string[] = [];
@@ -14,6 +14,40 @@ afterEach(async () => {
 });
 
 describe("Node adapter production integration", () => {
+  it("accepts per-tab dev logins in explicit development mode even with Discord credentials", async () => {
+    const accounts = await createNodeAccounts({
+      NODE_ENV: "development",
+      DISCORD_CLIENT_ID: "client-id",
+      DISCORD_CLIENT_SECRET: "client-secret",
+      SESSION_SECRET: "session-secret",
+    });
+    const server = await startNodeServer({
+      port: 0,
+      hostname: "127.0.0.1",
+      accounts,
+      env: { NODE_ENV: "development" },
+      staticDirectory: null,
+    });
+    servers.push(server);
+    const response = await fetch(`${server.url}/api/me?devUser=alice`);
+    expect(response.status).toBe(200);
+    expect(await response.json()).toEqual({ id: "dev:alice", displayName: "alice", avatarUrl: null });
+    expect((await fetch(`${server.url}/api/me`)).status).toBe(401);
+  });
+
+  it("rejects per-tab dev identities in production with Discord credentials configured", async () => {
+    const directory = await mkdtemp(join(tmpdir(), "litt-accounts-"));
+    directories.push(directory);
+    const accounts = await createNodeAccounts({
+      NODE_ENV: "production",
+      DISCORD_CLIENT_ID: "client-id",
+      DISCORD_CLIENT_SECRET: "client-secret",
+      SESSION_SECRET: "session-secret",
+      DATABASE_PATH: join(directory, "accounts.db"),
+    });
+    expect(await accounts.getSessionUser(new Request("http://localhost/api/me?devUser=alice"))).toBeNull();
+  });
+
   it("requires Discord and session credentials in production even with injected accounts", async () => {
     await expect(startNodeServer({ port: 0, env: { NODE_ENV: "production" }, accounts: createDevAccounts() }))
       .rejects.toThrow("Production requires DISCORD_CLIENT_ID, DISCORD_CLIENT_SECRET, and SESSION_SECRET");

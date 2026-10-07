@@ -14,7 +14,7 @@ import { RoomRegistry } from "../registry.js";
 import { Room } from "../room.js";
 
 export async function createNodeAccounts(env: NodeJS.ProcessEnv = process.env, port = 8787): Promise<Accounts> {
-  if (!env.DISCORD_CLIENT_ID) {
+  if (env.NODE_ENV === "development" || !env.DISCORD_CLIENT_ID) {
     if (env.NODE_ENV === "production") throw new Error("Production requires Discord authentication; dev accounts are disabled");
     return createDevAccounts();
   }
