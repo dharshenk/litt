@@ -6,6 +6,18 @@
   ],
   "scripts": {
     "test": "npm test --workspaces",
-    "typecheck": "npm run typecheck --workspaces"
+    "typecheck": "npm run typecheck --workspaces",
+    "dev": "concurrently -k -n server,web \"node --import dotenv/config --import tsx --watch packages/server/src/node/main.ts\" \"npm run dev --workspace @litt/web\"",
+    "build": "npm run build --workspace @litt/web",
+    "start": "node --import dotenv/config --import tsx packages/server/src/node/main.ts",
+    "test:e2e": "playwright test"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.63.0",
+    "concurrently": "^10.0.5",
+    "dotenv": "^18.0.6"
+  },
+  "overrides": {
+    "shell-quote": "1.12.0"
   }
 }

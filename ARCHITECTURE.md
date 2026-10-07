@@ -176,20 +176,23 @@ JSON over a single WebSocket per client. The authoritative definitions are in `p
 | Message | Notes |
 |---|---|
 | `lobby.setTeam { playerId, team }` | host only |
-| `lobby.setConfig { wrongDeclaration, historyLimit, turnSeconds \| null }` | host only, lobby phase only |
+| `lobby.setConfig { config }` | host only, lobby phase only |
 | `lobby.start` | host only; requires ≥ 6 players and equal teams |
+| `room.rematch` | host only; finished room only |
 | `game.ask { target, card }` | |
 | `game.declare { set, assignment }` | |
 | `game.choose { player }` | |
+| `ping` | responds with `pong` |
 
 **Server → client**
 
 | Message | Notes |
 |---|---|
-| `room.lobby { players, host, config }` | while in the lobby |
-| `game.view { view, turnDeadline? }` | personalized; sent to each player after every change |
+| `room.state { room }` | snapshot sent on connect and room changes |
+| `game.view { view, turnDeadline }` | personalized; sent to each player after every game change; deadline is a number or `null` |
 | `game.event { event }` | one-time notices (failed ask, declaration result, …) |
 | `error { code, message }` | rejected action; sent only to the sender |
+| `pong` | response to `ping` |
 
 Full views are sent after each change instead of diffs. A view is well under 2 KB, so the simplicity is worth it.
 
@@ -229,7 +232,7 @@ GET /auth/callback  → check state, exchange code at /api/oauth2/token,
 POST /auth/logout   → clear cookie
 ```
 
-- **Session:** an HMAC-signed cookie `{ discordId, exp }`, `HttpOnly; Secure; SameSite=Lax`. It is stateless, so no session table is needed and it works on any host.
+- **Session:** an HMAC-SHA256-signed cookie containing base64url JSON `{ sub, exp }`, verified with `crypto.subtle.verify`. It is `HttpOnly; SameSite=Lax; Path=/` and `Secure` on HTTPS. It is stateless, so no session table is needed and it works on any host.
 - The Discord access token is used once to fetch the profile and is not stored.
 - **Identity key:** the Discord user id. Display name and avatar are refreshed on every login.
 - **Secrets:** `DISCORD_CLIENT_ID`, `DISCORD_CLIENT_SECRET`, `SESSION_SECRET`.
@@ -250,6 +253,15 @@ game_players (game_id TEXT, discord_id TEXT, team TEXT,
 
 Stats (games played, wins, losses, draws, win rate) are computed by query. SQLite dialect works on both hosting options (D1 or a local SQLite/Turso file).
 
+The Node adapter enables WAL mode and applies the shared idempotent schema on open. D1 uses the `SqlDb` adapter and shared migration; the web-standard accounts entry does not import Node modules.
+
+### 6.6 Local and production serving
+
+- `npm run dev` starts the Node server on port `8787` and Vite on port `5173`; Vite proxies `/api`, `/auth` and `/ws` to Node. With no Discord client id, the server uses local dev accounts.
+- Dev identities are selected per tab with the home-page dev login. Requests append `devUser=<name>` only in Vite development builds.
+- `GET /api/dev/rooms/:code/state` is registered only when `LITT_DEV_TOOLS=1` and `NODE_ENV` is not `production`. It returns full engine state for E2E move selection and is absent from production.
+- `npm run build` creates the web bundle. `npm start` in production requires Discord credentials and serves `packages/web/dist`, falling back to `index.html` for `/` and `/r/:code`.
+
 ---
 
 ## 7. Web client (`packages/web`)
@@ -260,6 +272,7 @@ Routes:
 
 - `/` — log in with Discord, create a room, your stats.
 - `/r/:code` — lobby (teams, config, start) and then the game table.
+- In Vite development only, the home page offers a per-tab dev identity instead of requiring Discord during local play.
 
 Table UI:
 
@@ -303,7 +316,7 @@ The adapter is about a 100-line layer per host. The engine, protocol, `Room` cla
 | Engine (fuzz) | Random legal-action playouts asserting the invariants from rules §31 hold after every step and every game terminates. |
 | Protocol | Schema tests for valid and invalid messages. |
 | Room | `Room` tested with fake `send` / timers: lobby rules, rejoin, host hand-off, timer expiry. |
-| End-to-end | A Playwright smoke test with 6 browser contexts and a stubbed auth, playing a scripted game. |
+| End-to-end | Chromium Playwright test with six isolated browser contexts and dev identities. It plays a full game through the UI, verifies per-player hands and synchronized scores after each action, checks stats and reload/rejoin, and captures the key screens at desktop/phone sizes in both themes. |
 
 ---
 
@@ -311,10 +324,11 @@ The adapter is about a 100-line layer per host. The engine, protocol, `Room` cla
 
 1. **Engine + tests**: complete rules, views, invariants, fuzz test.
 2. **Protocol** package.
-3. **Room + local Node dev server** with a dev-only fake login (pick a name), so a full game can be played locally in 6 tabs.
+3. **Room + local Node dev server** with dev-only fake login (pick a name), so a full game can be played locally in 6 tabs.
 4. **Web client**: lobby and table.
 5. **Discord OAuth** and stats persistence.
-6. **Pick hosting**, write that adapter, deploy.
+6. **Integration + E2E**: root dev/build/start scripts, production static serving, and the six-context Playwright game.
+7. **Pick hosting**, write that adapter, deploy.
 
 ---
 

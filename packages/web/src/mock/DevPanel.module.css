@@ -1,0 +1,66 @@
+/* Fixed dark chrome in both themes, like the prototype's panel. */
+.panel {
+  position: fixed;
+  left: 14px;
+  bottom: 14px;
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 8px;
+  border-radius: 12px;
+  background: rgba(15, 20, 18, 0.92);
+  color: #ecefe9;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+  font: 500 12px var(--font-ui);
+  width: 200px;
+  max-height: calc(100dvh - 28px);
+}
+
+.toggle {
+  height: 26px;
+  border: 0;
+  background: none;
+  color: #8d9a92;
+  font: 600 11px var(--font-mono);
+  letter-spacing: 0.1em;
+  text-align: left;
+  padding: 0 6px;
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  overflow: auto;
+  min-height: 0;
+}
+
+.group {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.groupLabel {
+  padding: 0 6px;
+  color: #5f6b64;
+  font: 600 10px var(--font-ui);
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+}
+
+.action {
+  height: 30px;
+  padding: 0 10px;
+  border-radius: 7px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.04);
+  color: #ecefe9;
+  font: 500 12px var(--font-ui);
+  text-align: left;
+}
+
+.action:hover {
+  background: rgba(255, 255, 255, 0.1);
+}

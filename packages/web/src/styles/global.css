@@ -1,0 +1,251 @@
+/* Design tokens: dark by default, light via system preference or [data-theme]. */
+:root,
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --page: #0b100d;
+  --bg: #121a16;
+  --bg2: #16201b;
+  --felt: #1c2b24;
+  --surf: rgba(255, 255, 255, 0.04);
+  --surf2: rgba(255, 255, 255, 0.08);
+  --line: rgba(255, 255, 255, 0.07);
+  --line2: rgba(255, 255, 255, 0.14);
+  --ink: #ecefe9;
+  --ink2: #b9c3bc;
+  --mute: #8d9a92;
+  --faint: #5f6b64;
+  --A: oklch(0.74 0.12 60);
+  --Atx: oklch(0.82 0.1 60);
+  --Asoft: oklch(0.74 0.12 60 / 0.13);
+  --Aline: oklch(0.74 0.12 60 / 0.4);
+  --B: oklch(0.72 0.12 240);
+  --Btx: oklch(0.82 0.09 240);
+  --Bsoft: oklch(0.72 0.12 240 / 0.13);
+  --Bline: oklch(0.72 0.12 240 / 0.4);
+  --onA: #1b1408;
+  --paper: #f7f5ef;
+  --red: oklch(0.55 0.19 27);
+  --blk: #1b1d1c;
+  --btn: #ecefe9;
+  --btnInk: #121a16;
+  --ok: #5fc28a;
+  --bad: oklch(0.68 0.18 25);
+  --toast: #ecefe9;
+  --toastInk: #121a16;
+  --scrim: rgba(0, 0, 0, 0.55);
+  --sheet: #18231e;
+  --cardSh: 0 1px 0 rgba(0, 0, 0, 0.2), 0 10px 24px rgba(0, 0, 0, 0.35);
+  --avA: oklch(0.4 0.07 60);
+  --avB: oklch(0.36 0.06 240);
+  --avN: #2c3d35;
+}
+
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme="dark"]) {
+    color-scheme: light;
+    --page: #d9d5ca;
+    --bg: #f2efe7;
+    --bg2: #e9e5da;
+    --felt: #faf8f3;
+    --surf: rgba(20, 30, 25, 0.04);
+    --surf2: rgba(20, 30, 25, 0.08);
+    --line: rgba(20, 30, 25, 0.09);
+    --line2: rgba(20, 30, 25, 0.18);
+    --ink: #18201b;
+    --ink2: #3d4842;
+    --mute: #5a665f;
+    --faint: #98a29b;
+    --A: oklch(0.78 0.13 68);
+    --Atx: oklch(0.5 0.12 55);
+    --Asoft: oklch(0.78 0.13 68 / 0.2);
+    --Aline: oklch(0.62 0.13 60 / 0.55);
+    --B: oklch(0.6 0.13 245);
+    --Btx: oklch(0.45 0.12 245);
+    --Bsoft: oklch(0.6 0.13 245 / 0.12);
+    --Bline: oklch(0.55 0.13 245 / 0.5);
+    --paper: #ffffff;
+    --red: oklch(0.55 0.2 27);
+    --btn: #18201b;
+    --btnInk: #f2efe7;
+    --ok: #2f9a5e;
+    --bad: oklch(0.55 0.2 25);
+    --toast: #18201b;
+    --toastInk: #f2efe7;
+    --scrim: rgba(20, 25, 22, 0.35);
+    --sheet: #fbfaf6;
+    --cardSh: 0 1px 0 rgba(0, 0, 0, 0.06), 0 8px 20px rgba(40, 40, 30, 0.14);
+    --avA: oklch(0.88 0.07 68);
+    --avB: oklch(0.88 0.05 245);
+    --avN: #dcd8cd;
+  }
+}
+
+:root[data-theme="light"] {
+  color-scheme: light;
+  --page: #d9d5ca;
+  --bg: #f2efe7;
+  --bg2: #e9e5da;
+  --felt: #faf8f3;
+  --surf: rgba(20, 30, 25, 0.04);
+  --surf2: rgba(20, 30, 25, 0.08);
+  --line: rgba(20, 30, 25, 0.09);
+  --line2: rgba(20, 30, 25, 0.18);
+  --ink: #18201b;
+  --ink2: #3d4842;
+  --mute: #5a665f;
+  --faint: #98a29b;
+  --A: oklch(0.78 0.13 68);
+  --Atx: oklch(0.5 0.12 55);
+  --Asoft: oklch(0.78 0.13 68 / 0.2);
+  --Aline: oklch(0.62 0.13 60 / 0.55);
+  --B: oklch(0.6 0.13 245);
+  --Btx: oklch(0.45 0.12 245);
+  --Bsoft: oklch(0.6 0.13 245 / 0.12);
+  --Bline: oklch(0.55 0.13 245 / 0.5);
+  --paper: #ffffff;
+  --red: oklch(0.55 0.2 27);
+  --btn: #18201b;
+  --btnInk: #f2efe7;
+  --ok: #2f9a5e;
+  --bad: oklch(0.55 0.2 25);
+  --toast: #18201b;
+  --toastInk: #f2efe7;
+  --scrim: rgba(20, 25, 22, 0.35);
+  --sheet: #fbfaf6;
+  --cardSh: 0 1px 0 rgba(0, 0, 0, 0.06), 0 8px 20px rgba(40, 40, 30, 0.14);
+  --avA: oklch(0.88 0.07 68);
+  --avB: oklch(0.88 0.05 245);
+  --avN: #dcd8cd;
+}
+
+:root {
+  --font-ui: Geist, system-ui, sans-serif;
+  --font-display: "Instrument Serif", Georgia, serif;
+  --font-mono: "Geist Mono", ui-monospace, monospace;
+  --ease-out: cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+/* Team colour shorthands, picked by data-team on any element. */
+[data-team="A"] {
+  --tc: var(--A);
+  --ttx: var(--Atx);
+  --tsoft: var(--Asoft);
+  --tline: var(--Aline);
+  --tav: var(--avA);
+}
+[data-team="B"] {
+  --tc: var(--B);
+  --ttx: var(--Btx);
+  --tsoft: var(--Bsoft);
+  --tline: var(--Bline);
+  --tav: var(--avB);
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font: 400 14px/1.4 var(--font-ui);
+  -webkit-font-smoothing: antialiased;
+  transition: background 0.3s;
+}
+
+button,
+input {
+  font: inherit;
+  color: inherit;
+}
+button {
+  cursor: pointer;
+}
+button:disabled {
+  cursor: not-allowed;
+}
+
+a {
+  color: var(--Atx);
+}
+a:hover {
+  color: var(--ink);
+}
+
+:focus-visible {
+  outline: 2px solid var(--A);
+  outline-offset: 2px;
+}
+
+h1,
+h2,
+p {
+  margin: 0;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* 11px uppercase section label */
+.label {
+  font: 500 11px var(--font-ui);
+  color: var(--mute);
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+}
+
+.spinner {
+  display: inline-block;
+  flex: none;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  border: 2px solid var(--line2);
+  border-top-color: var(--spin, var(--A));
+  animation: litt-spin 1s linear infinite;
+}
+
+@keyframes litt-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.app {
+  position: relative;
+  height: 100%;
+  height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: var(--bg);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-delay: 0s !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}

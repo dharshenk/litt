@@ -153,3 +153,5 @@ vite.config.ts.timestamp-*
 .dev.vars
 !.env.example
 *.db
+test-results/
+playwright-report/

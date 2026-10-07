@@ -5,19 +5,23 @@
   "type": "module",
   "main": "src/index.ts",
   "types": "src/index.ts",
+  "exports": {
+    ".": "./src/index.ts",
+    "./node": "./src/node.ts"
+  },
   "scripts": {
     "test": "vitest run",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "@litt/engine": "*",
-    "@litt/protocol": "*"
+    "@litt/protocol": "*",
+    "better-sqlite3": "^11.0.0"
   },
   "devDependencies": {
     "@types/better-sqlite3": "^7.6.0",
     "@types/node": "^22.0.0",
-    "better-sqlite3": "^11.0.0",
     "typescript": "^5.6.0",
-    "vitest": "^3.0.0"
+    "vitest": "^5.0.3"
   }
 }

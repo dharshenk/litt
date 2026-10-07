@@ -1,0 +1,94 @@
+.hand {
+  margin-top: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding-top: 6px;
+}
+
+.empty {
+  height: 90px;
+  border-radius: 12px;
+  border: 1px dashed var(--line2);
+  display: grid;
+  place-items: center;
+  padding: 0 16px;
+  text-align: center;
+  font: 400 14px var(--font-ui);
+  color: var(--mute);
+}
+
+.groups {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px 10px;
+  align-items: flex-end;
+}
+
+.group {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  transition: transform 0.25s var(--ease-out);
+}
+
+.group[data-lifted] {
+  transform: translateY(-8px);
+}
+
+.cards {
+  display: flex;
+  padding-right: 20px;
+}
+
+.card {
+  margin-right: -20px;
+}
+
+.deal {
+  animation: cardIn 0.5s var(--ease-out) both;
+}
+
+.received {
+  animation: cardIn 0.55s var(--ease-out);
+}
+
+.groupLabel {
+  font: 500 12px var(--font-ui);
+  color: var(--mute);
+  white-space: nowrap;
+  transition: color 0.25s;
+}
+
+.group[data-lifted] .groupLabel {
+  color: var(--ink);
+}
+
+@keyframes cardIn {
+  0% {
+    transform: translateY(-40px) scale(0.85) rotate(-6deg);
+    opacity: 0;
+  }
+  60% {
+    opacity: 1;
+  }
+  100% {
+    transform: none;
+    opacity: 1;
+  }
+}
+
+@media (max-width: 819.98px) {
+  .empty {
+    height: 62px;
+  }
+  .groups {
+    gap: 10px 4px;
+  }
+  .cards {
+    padding-right: 14px;
+  }
+  .card {
+    margin-right: -14px;
+  }
+}

@@ -1,0 +1,124 @@
+.card {
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  background: var(--paper);
+  color: var(--blk);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  box-shadow: var(--cardSh);
+  font-family: var(--font-ui);
+  user-select: none;
+}
+
+.card[data-red] {
+  color: var(--red);
+}
+
+.rank {
+  font-weight: 600;
+  line-height: 1;
+}
+
+.suit {
+  line-height: 1;
+  align-self: flex-end;
+}
+
+.flip {
+  align-self: flex-end;
+  transform: rotate(180deg);
+}
+
+.hand {
+  width: 64px;
+  height: 90px;
+  border-radius: 9px;
+  padding: 7px 8px;
+}
+.hand .rank {
+  font-size: 16px;
+}
+.hand .suit {
+  font-size: 26px;
+}
+
+.mini {
+  width: 48px;
+  height: 68px;
+  border-radius: 8px;
+  padding: 6px 7px;
+}
+.mini .rank {
+  font-size: 14px;
+}
+.mini .suit {
+  font-size: 19px;
+}
+
+.tiny {
+  width: 32px;
+  height: 44px;
+  border-radius: 6px;
+  padding: 4px 5px;
+  box-shadow: none;
+}
+.tiny .rank {
+  font-size: 11px;
+}
+.tiny .suit {
+  font-size: 13px;
+}
+
+.spot {
+  width: 96px;
+  height: 134px;
+  border-radius: 12px;
+  padding: 10px 11px;
+}
+.spot .rank {
+  font-size: 24px;
+}
+.spot .suit {
+  font-size: 42px;
+  align-self: center;
+}
+
+@media (max-width: 819.98px) {
+  .hand {
+    width: 44px;
+    height: 62px;
+  }
+  .hand .rank {
+    font-size: 13px;
+  }
+  .hand .suit {
+    font-size: 18px;
+  }
+  .spot {
+    width: 64px;
+    height: 90px;
+  }
+  .spot .rank {
+    font-size: 18px;
+  }
+  .spot .suit {
+    font-size: 28px;
+  }
+}
+
+.chip {
+  display: inline-block;
+  flex: none;
+  padding: 2px 7px;
+  border-radius: 5px;
+  background: var(--paper);
+  border: 1px solid var(--line);
+  color: var(--blk);
+  font: 600 12px/1.4 var(--font-ui);
+  white-space: nowrap;
+}
+
+.chip[data-red] {
+  color: var(--red);
+}

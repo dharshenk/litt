@@ -1,0 +1,101 @@
+.seg,
+.segCompact {
+  display: grid;
+  border-radius: 11px;
+  background: var(--surf);
+}
+
+.seg {
+  padding: 4px;
+}
+
+.segCompact {
+  flex: 1;
+  gap: 3px;
+  padding: 3px;
+  border-radius: 9px;
+}
+
+.segItem {
+  position: relative;
+  display: grid;
+  place-items: center;
+  min-width: 0;
+  height: 38px;
+  padding: 0 2px;
+  border-radius: 8px;
+  color: var(--ink2);
+  font: 600 13px var(--font-ui);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.segCompact .segItem {
+  height: 30px;
+  border-radius: 6px;
+  font-weight: 500;
+  font-size: 12px;
+}
+
+.segText {
+  white-space: nowrap;
+}
+
+.segCompact .segText {
+  min-width: 0;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.segItem[data-on] {
+  background: var(--btn);
+  color: var(--btnInk);
+}
+
+.segItem[data-disabled] {
+  cursor: not-allowed;
+}
+
+.segItem[data-disabled]:not([data-on]) {
+  color: var(--faint);
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.chip {
+  position: relative;
+  padding: 7px 11px;
+  border-radius: 8px;
+  border: 1px solid var(--line2);
+  background: transparent;
+  color: var(--ink2);
+  font: 500 12px/1.2 var(--font-ui);
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.mono {
+  padding: 7px 12px;
+  font: 500 13px/1.2 var(--font-mono);
+}
+
+.chip[data-on] {
+  background: var(--btn);
+  border-color: var(--btn);
+  color: var(--btnInk);
+}
+
+.chip[data-disabled] {
+  cursor: not-allowed;
+}
+
+.segItem:has(input:focus-visible),
+.chip:has(input:focus-visible) {
+  outline: 2px solid var(--A);
+  outline-offset: 2px;
+}

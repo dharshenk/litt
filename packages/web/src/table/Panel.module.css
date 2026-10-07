@@ -1,0 +1,386 @@
+.step {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.fadeIn {
+  animation: fade-in 0.25s ease;
+}
+
+.stepLabel {
+  font: 500 12px var(--font-ui);
+  color: var(--mute);
+}
+
+.hint {
+  font: 400 13px/1.5 var(--font-ui);
+  color: var(--mute);
+}
+
+.cta {
+  margin-top: auto;
+  flex: none;
+  height: 50px;
+  border: 0;
+  border-radius: 12px;
+  background: var(--A);
+  color: var(--onA);
+  font: 600 15px var(--font-ui);
+  transition: all 0.2s;
+}
+
+.cta:disabled {
+  background: var(--surf2);
+  color: var(--faint);
+}
+
+/* ---------- Ask ---------- */
+
+.askCards {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.askCard {
+  position: relative;
+  display: block;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: transform 0.15s;
+}
+
+.askCard:hover {
+  transform: translateY(-3px);
+}
+
+.askCard[data-on] {
+  transform: translateY(-4px);
+  outline: 2px solid var(--A);
+  outline-offset: 2px;
+}
+
+.askCard:has(input:focus-visible) {
+  outline: 2px solid var(--A);
+  outline-offset: 2px;
+}
+
+.targets {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.target {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: transparent;
+  border: 1px solid var(--line2);
+  color: var(--ink);
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.target[data-on] {
+  background: var(--Bsoft);
+  border-color: var(--B);
+}
+
+.target[data-out] {
+  border-style: dashed;
+  border-color: var(--line);
+  color: var(--faint);
+  cursor: not-allowed;
+}
+
+.target:has(input:focus-visible) {
+  outline: 2px solid var(--A);
+  outline-offset: 2px;
+}
+
+.radio {
+  flex: none;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  border: 1.5px solid var(--mute);
+  transition: all 0.15s;
+}
+
+.target[data-on] .radio {
+  border: 5px solid var(--B);
+}
+
+.target[data-out] .radio {
+  border-color: var(--line);
+}
+
+.targetName {
+  flex: 1;
+  min-width: 0;
+  font: 500 14px var(--font-ui);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.targetTag {
+  font: 400 12px var(--font-ui);
+}
+
+/* ---------- Declare ---------- */
+
+.declRows {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.declRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 5px 6px 5px 5px;
+  border-radius: 11px;
+  background: var(--surf);
+}
+
+/* ---------- Choose / waiting ---------- */
+
+.titleBlock {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.kicker {
+  font: 500 12px var(--font-ui);
+  color: var(--Atx);
+}
+
+.title {
+  font: 400 30px/1.1 var(--font-display);
+}
+
+.chooseList {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.chooseItem {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  border: 1px solid var(--line2);
+  background: var(--surf);
+  color: var(--ink);
+  text-align: left;
+  animation: pop 0.25s ease;
+}
+
+.chooseItem:hover:not(:disabled) {
+  border-color: var(--A);
+  background: var(--Asoft);
+}
+
+.chooseName {
+  flex: 1;
+  font: 500 15px var(--font-ui);
+}
+
+.play {
+  font: 500 13px var(--font-ui);
+  color: var(--mute);
+}
+
+.center {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  text-align: center;
+  padding: 24px 0;
+}
+
+.waitSpin {
+  width: 26px;
+  height: 26px;
+  border-width: 2.5px;
+  --spin: var(--tc, var(--A));
+}
+
+.waitText {
+  font: 400 28px/1.15 var(--font-display);
+  max-width: 260px;
+}
+
+.otherAvatar {
+  display: inline-flex;
+  border-radius: 50%;
+  animation: pulse 1.6s ease-in-out infinite;
+}
+
+.otherText {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  align-items: center;
+}
+
+.otherTitle {
+  font: 400 30px/1.1 var(--font-display);
+}
+
+.otherSub {
+  font: 400 14px/1.5 var(--font-ui);
+  color: var(--mute);
+  max-width: 240px;
+}
+
+/* ---------- Transfers ---------- */
+
+.transfers {
+  padding: 18px 24px 22px;
+  border-top: 1px solid var(--line);
+  display: flex;
+  flex-direction: column;
+  gap: 11px;
+}
+
+.transfersInline {
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: var(--surf);
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.transfersHead {
+  display: flex;
+  justify-content: space-between;
+}
+
+.transfersInline :global(.label) {
+  font-size: 10px;
+}
+
+.transfersMeta {
+  font: 400 11px var(--font-mono);
+  color: var(--faint);
+}
+
+.noTransfers {
+  font: 400 13px var(--font-ui);
+  color: var(--faint);
+}
+
+.transfersInline .noTransfers {
+  font-size: 12px;
+}
+
+.transferList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 11px;
+}
+
+.transfersInline .transferList {
+  gap: 7px;
+}
+
+.transfer {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font: 400 13px var(--font-ui);
+  color: var(--ink2);
+  padding: 5px 8px;
+  margin: 0 -8px;
+  border-radius: 8px;
+  transition: background 0.6s;
+  animation: fade-in 0.4s ease;
+}
+
+.transfer[data-now] {
+  background: color-mix(in oklch, var(--ok) 14%, transparent);
+}
+
+.transfersInline .transfer {
+  justify-content: space-between;
+  font-size: 12px;
+  padding: 0;
+  margin: 0;
+}
+
+.seq {
+  width: 26px;
+  font: 400 11px var(--font-mono);
+  color: var(--faint);
+}
+
+.route {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.transfersInline .route {
+  flex: initial;
+}
+
+.arrow {
+  color: var(--faint);
+}
+
+.nowTag {
+  font: 600 10px var(--font-ui);
+  color: var(--ok);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes pop {
+  from {
+    transform: translateY(10px) scale(0.98);
+    opacity: 0;
+  }
+  to {
+    transform: none;
+    opacity: 1;
+  }
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 var(--tline);
+  }
+  50% {
+    box-shadow: 0 0 0 6px transparent;
+  }
+}

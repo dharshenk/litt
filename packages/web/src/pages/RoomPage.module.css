@@ -1,0 +1,111 @@
+.room {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.centered {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  padding: 24px 18px;
+  text-align: center;
+  background: radial-gradient(80% 70% at 50% 45%, var(--felt) 0%, var(--bg) 85%);
+}
+
+.title {
+  font: 400 30px/1.1 var(--font-display);
+  max-width: 420px;
+}
+
+.note {
+  font: 400 14px/1.5 var(--font-ui);
+  color: var(--mute);
+  max-width: 380px;
+  text-wrap: pretty;
+}
+
+.row {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  justify-content: center;
+  margin-top: 6px;
+}
+
+.primary,
+.secondary {
+  height: 48px;
+  padding: 0 22px;
+  border-radius: 12px;
+  font: 600 14px var(--font-ui);
+  display: inline-flex;
+  align-items: center;
+  text-decoration: none;
+}
+
+.primary {
+  border: 0;
+  background: var(--A);
+  color: var(--onA);
+}
+
+.secondary {
+  border: 1px solid var(--line2);
+  background: none;
+  color: var(--ink);
+  font-weight: 500;
+}
+
+.secondary:hover {
+  color: var(--ink);
+  background: var(--surf);
+}
+
+.link {
+  font: 500 14px var(--font-ui);
+}
+
+.gate {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  padding: 56px 64px;
+  display: flex;
+  flex-direction: column;
+  gap: 40px;
+  background: radial-gradient(120% 90% at 20% 30%, var(--felt) 0%, var(--bg) 70%);
+}
+
+.gateBody {
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+  max-width: 520px;
+  margin: auto 0;
+}
+
+.gateTitle {
+  font: 400 64px/0.98 var(--font-display);
+  letter-spacing: -0.01em;
+}
+
+.gateTitle em {
+  font-style: italic;
+  color: var(--Atx);
+}
+
+@media (max-width: 819.98px) {
+  .gate {
+    padding: 28px 22px;
+  }
+  .gateTitle {
+    font-size: 46px;
+  }
+}

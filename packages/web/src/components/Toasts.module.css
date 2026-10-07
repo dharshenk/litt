@@ -1,0 +1,94 @@
+.viewport {
+  position: absolute;
+  left: 0;
+  right: 0;
+  z-index: 30;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 0 14px;
+  pointer-events: none;
+}
+
+.viewport[data-placement="game"] {
+  top: 84px;
+  right: 340px;
+}
+
+.viewport[data-placement="page"] {
+  bottom: 28px;
+}
+
+@media (max-width: 819.98px) {
+  .viewport[data-placement="game"] {
+    top: 76px;
+    right: 0;
+  }
+  .viewport[data-placement="page"] {
+    top: 16px;
+    bottom: auto;
+  }
+}
+
+.toast {
+  max-width: 560px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px 12px 12px;
+  border-radius: 14px;
+  background: var(--toast);
+  color: var(--toastInk);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.3);
+  animation: toast-in 0.3s var(--ease-out);
+  pointer-events: auto;
+}
+
+.toast[data-kind="error"] {
+  background: var(--bad);
+  color: #fff;
+}
+
+.iconChip,
+.cardChip {
+  flex: none;
+  min-width: 34px;
+  height: 44px;
+  padding: 0 4px;
+  border-radius: 6px;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  display: grid;
+  place-items: center;
+  font: 600 13px var(--font-ui);
+}
+
+.iconChip {
+  background: transparent;
+  color: inherit;
+}
+
+.cardChip {
+  background: #fff;
+  color: #1b1d1c;
+}
+
+.cardChip[data-red] {
+  color: oklch(0.55 0.19 27);
+}
+
+.text {
+  font: 400 14px/1.4 var(--font-ui);
+  text-wrap: pretty;
+}
+
+@keyframes toast-in {
+  from {
+    transform: translateY(14px);
+    opacity: 0;
+  }
+  to {
+    transform: none;
+    opacity: 1;
+  }
+}
