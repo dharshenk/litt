@@ -49,7 +49,7 @@ With a `deal` given, also reject unless:
 **Hands** are always stored sorted in canonical `ALL_CARDS` order. Keep this true after every transfer.
 
 **Initial state:**
-- All sets are `ACTIVE`, scores are 0 and history is empty.
+- All sets are `ACTIVE`, scores are 0, and history and `resolutions` are empty.
 - `transferCount` is 0.
 - `phase = { kind: "turn", player: firstPlayer ?? random player via rng }`.
 
@@ -110,6 +110,7 @@ Check these in order, so error codes are deterministic:
 
 - Remove all 6 cards of the set from whichever hands hold them, on both teams.
 - History is **not** changed; declarations are not transfers.
+- Append `{ set, declaredBy: player, team, correct, outcome }` to `resolutions`.
 - Emit `declared { player, team, set, assignment, correct, outcome }`.
 
 **If all 9 sets are now resolved:**
@@ -153,9 +154,10 @@ Returns the `PlayerView` contract:
 - the player's own sorted hand;
 - `players` in seat order with `outOfCards`;
 - sets, scores, phase and config;
-- `recentTransfers` (a copy of `history`).
+- `recentTransfers` (a copy of `history`);
+- `transferCount` and `resolutions` (both public information, used by the game-over screen).
 
-**It must not leak anything else:** no other hands, no hand sizes, no `transferCount`. Return fresh objects so callers can't mutate state through the view. For an unknown `playerId`, throw an `Error`; the server never calls it that way.
+**It must not leak anything else:** no other hands and no hand sizes. Return fresh objects so callers can't mutate state through the view. For an unknown `playerId`, throw an `Error`; the server never calls it that way.
 
 ## Tests (Vitest)
 
@@ -173,7 +175,8 @@ Use fixed `deal`s, `firstPlayer` and `seededRng` so tests are deterministic. Bui
   - scores;
   - cards removed from both teams' hands;
   - `NO_BASE_CARD` for declare;
-  - `INVALID_ASSIGNMENT` variants: missing card, extra card, opponent assigned, unknown player.
+  - `INVALID_ASSIGNMENT` variants: missing card, extra card, opponent assigned, unknown player;
+  - `resolutions` records each declaration in order.
 - **Hand-off:** each of the 4 table rows, the single-eligible auto-skip, `NOT_CHOOSER`, `NOT_ELIGIBLE`, and a team chooser accepting any teammate.
 - **Timeout:** both phases, including the fallbacks when opponents are empty.
 - **Game over:** win A, win B, and a draw in null mode; actions after the game ends return `GAME_OVER`.
@@ -188,6 +191,7 @@ Use fixed `deal`s, `firstPlayer` and `seededRng` so tests are deterministic. Bui
     - no card of a resolved set is in any hand;
     - every card of an active set is in some hand;
     - each team's score = its number of `WON_<team>` sets;
+    - `resolutions` has exactly one entry per non-active set, matching its status;
     - `history.length ≤ historyLimit`;
     - the active player (turn phase) has ≥1 card;
     - every eligible player has ≥1 card;

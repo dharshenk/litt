@@ -33,6 +33,15 @@ export interface Transfer {
   card: Card;
 }
 
+/** How a set left play. Public information (declarations are announced). */
+export interface SetResolution {
+  set: SetId;
+  declaredBy: string;
+  team: Team;
+  correct: boolean;
+  outcome: Exclude<SetStatus, "ACTIVE">;
+}
+
 export type ChooseReason =
   /** Correct declaration: declarer passes the turn within their team (§34.1.1). */
   | "correctDeclaration"
@@ -63,6 +72,8 @@ export interface GameState {
   history: Transfer[];
   /** Total successful transfers so far (used for Transfer.seq). */
   transferCount: number;
+  /** Resolved sets, in the order they were declared. */
+  resolutions: SetResolution[];
   phase: Phase;
 }
 
@@ -144,6 +155,9 @@ export interface PlayerView {
   scores: Record<Team, number>;
   phase: Phase;
   recentTransfers: Transfer[];
+  /** Total successful transfers so far (public: every transfer is announced). */
+  transferCount: number;
+  resolutions: SetResolution[];
   config: GameConfig;
 }
 

@@ -84,6 +84,7 @@ Read first:
   - the game-over banner shows on all six pages;
   - after the game, `GET /api/stats` shows 6 players with 1 game each.
 - Add a second, short test: a player reloads mid-game, gets the same seat and hand back, and the game continues.
+- **Visual check:** during the scripted game, take screenshots at 1440px and 390px, in dark and light themes, of the lobby, my turn, the ask spotlight, the declare review, the choose phase and game over. Compare them by eye with `design/`, and list any mismatches in your report. This is not a pixel-diff gate.
 
 ### 6. Documentation
 

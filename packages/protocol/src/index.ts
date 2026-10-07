@@ -72,6 +72,9 @@ export interface RoomSnapshot {
   hostId: string;
   players: RoomPlayer[];
   config: RoomConfig;
+  /** Epoch ms of the current/last game's start and end; null when not applicable. Reset on rematch. */
+  startedAt: number | null;
+  endedAt: number | null;
 }
 
 // ---------- WebSocket messages ----------

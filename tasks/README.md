@@ -17,6 +17,8 @@ Tasks 01–04 only depend on the **contract files**, which are already written a
 - `packages/protocol/src/index.ts`: HTTP API and WebSocket message types
 - `packages/accounts/src/types.ts`: `Accounts` interface, `SqlDb`, `FinishedGameRecord`
 
+The **UI design** for Task 03 is in `design/`: a handoff `README.md`, a playable prototype and static mockups. It is the source of truth for visuals. Other tasks don't need it.
+
 To start a task, give the agent: **"Read `tasks/README.md`, then do the task in `tasks/0N-<name>.md`."**
 
 Running agents in parallel in the same folder works because they own disjoint packages. Separate git worktrees are safer: run `git init` and commit once, then give each agent its own branch or worktree.
@@ -26,7 +28,7 @@ Running agents in parallel in the same folder works because they own disjoint pa
 ## Rules for every agent
 
 1. **Read first:** `rules.md` (especially §34 *Finalized Decisions*), `ARCHITECTURE.md`, this README, and your task file.
-2. **Stay in your package.** Only create or modify files under the paths your task owns, plus your report file.
+2. **Stay in your package.** `design/` is read-only for everyone. Only create or modify files under the paths your task owns, plus your report file.
 3. **Contract files are read-only.**
    - If you believe one must change, do not edit it.
    - Instead, append an entry to `tasks/CONTRACT_CHANGES.md` under your task's heading. Say what should change and why.

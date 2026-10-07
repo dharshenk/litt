@@ -160,7 +160,8 @@ Events are broadcast once and not stored. This is how a failed ask becomes a bri
 - the player's own hand;
 - for every player: id, team and `outOfCards: boolean` (§34.1.11). **Hand sizes are never included** (§34.1.7);
 - set statuses, scores, phase, config;
-- the last `historyLimit` transfers.
+- the last `historyLimit` transfers;
+- the total transfer count and the list of set resolutions (who declared each set, whether it was correct, and the outcome). Both are public, and the game-over screen uses them.
 
 This is the **only** state shape that leaves the server for a game in progress. Tests assert that no other player's cards appear in it.
 
@@ -253,7 +254,9 @@ Stats (games played, wins, losses, draws, win rate) are computed by query. SQLit
 
 ## 7. Web client (`packages/web`)
 
-React + Vite single-page app, with routes:
+React + Vite single-page app. The visual design (tokens, layouts, motion, phone layout) is specified in [design/README.md](design/README.md), with a playable prototype and mockups next to it.
+
+Routes:
 
 - `/` — log in with Discord, create a room, your stats.
 - `/r/:code` — lobby (teams, config, start) and then the game table.

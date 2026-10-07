@@ -85,7 +85,7 @@ class Room {
   It then:
   - creates the game via `engine.createGame` with seats **alternating teams**: A1, B1, A2, B2, … in join order within each team;
   - uses config `{ wrongDeclaration, historyLimit }`;
-  - sets status to `playing`, records `startedAt`, broadcasts state and views, and arms the timer.
+  - sets status to `playing`, sets `startedAt = now()` and `endedAt = null` in the snapshot, broadcasts state and views, and arms the timer.
 
 **Game messages:**
 - Map `game.ask` / `game.declare` / `game.choose` to engine actions, with `player` = the sender's user id.
@@ -105,10 +105,12 @@ class Room {
 
 **Game over:**
 - Triggered when the engine phase becomes `over`.
-- Set status to `finished` and call `onGameFinished` once with a `FinishedGameRecord`:
+- Set status to `finished` and `endedAt = now()`, and broadcast `room.state`.
+- Call `onGameFinished` once with a `FinishedGameRecord`:
   - `id` is generated with `crypto.randomUUID()`;
   - include the timestamps, config, result, scores and the players with their teams.
-- `room.rematch` (host only, finished only) returns the room to `lobby`, keeping teams and config. The old game state is discarded.
+- `room.rematch` (host only, finished only) returns the room to `lobby`, keeping teams and config. The old game state is discarded, and `startedAt` and `endedAt` are reset to `null`.
+- While the room is `finished`, keep the final game state, so players who reconnect still receive the final `game.view` for the game-over screen.
 
 **Other messages:**
 - `ping` → `pong`.
@@ -166,7 +168,7 @@ Use only web-standard APIs here, so the app can later run on Cloudflare Workers.
   - accepted actions broadcast events and send per-player views, with each player receiving only their own view;
   - rejected actions send an error to the sender only;
   - the timer is armed, re-armed and fires `timeout`, and `turnDeadline` is included;
-  - game over calls `onGameFinished` exactly once; rematch;
+  - game over calls `onGameFinished` exactly once and sets `endedAt`; rematch resets `startedAt`/`endedAt`; a player reconnecting after the game ends still gets the final view;
   - a second connection replaces the first; a non-member is rejected mid-game;
   - garbage input never throws.
 - **Leak test:** after several actions, assert that no `send` call to player X ever contains a card the fake engine says belongs to player Y.

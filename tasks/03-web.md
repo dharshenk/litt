@@ -8,21 +8,36 @@ The server is authoritative and sends each player only their own `PlayerView`.
 
 Other agents are building the engine, server and accounts **in parallel**, so you build against the contract types plus a **mock server** of your own.
 
-Read first: `tasks/README.md`, `rules.md` (the whole thing, to understand the game, plus §34), `ARCHITECTURE.md` §7, and the contracts:
-- `packages/protocol/src/index.ts` (HTTP routes and WebSocket messages)
-- `packages/engine/src/types.ts` (`PlayerView`, `Phase`, `GameEvent`, …)
-- `packages/engine/src/cards.ts`
+**A high-fidelity design exists and is the source of truth for everything visual.** This file defines behaviour and data flow. `design/README.md` defines look, layout and motion.
+
+Read first:
+- `tasks/README.md`;
+- `rules.md` (the whole thing, to understand the game, plus §34);
+- `ARCHITECTURE.md` §7;
+- **`design/README.md`** (tokens, type, screens, motion);
+- the contracts:
+  - `packages/protocol/src/index.ts` (HTTP routes, WebSocket messages, `RoomSnapshot`)
+  - `packages/engine/src/types.ts` (`PlayerView`, `Phase`, `GameEvent`, `SetResolution`, …)
+  - `packages/engine/src/cards.ts`
+
+Then **open the design files in a browser**. Keep `support.js` next to them.
+- `design/Litt Prototype.dc.html` is a playable prototype. Use its bottom-left **PROTOTYPE** panel to see every state, and the Tweaks for theme and phone layout.
+- `design/Litt Mockups.dc.html` has static boards of the main screens (1a–1g).
+
+**Recreate the design; don't port it.** The prototype's bots, dealing and legality code are a stand-in for the server. Do not copy them. The `.dc.html` markup is a reference, not production code. Rebuild it as React components and plain CSS.
 
 ## You own
 
 - `packages/web/**`
 - `tasks/reports/03.md`
+- `design/` is read-only.
 
 ## Stack
 
 React 19, Vite 6, TypeScript, react-router 7 and Vitest with Testing Library and jsdom. These are already in `package.json` and installed.
 
-- Plain CSS: CSS modules or one stylesheet with CSS variables. No UI framework.
+- Plain CSS: one global stylesheet with the design tokens, plus CSS modules per component. No UI framework.
+- **Fonts:** Instrument Serif, Geist and Geist Mono from Google Fonts, loaded via `<link>` in `index.html`.
 - Import `cardsInSet`, `setOf`, `SET_IDS`, `isCard` and the types from `@litt/engine`.
   - Only `cards.ts` and `types.ts` are guaranteed to exist.
   - Do **not** import `apply`, `createGame` or `playerView`.
@@ -33,110 +48,123 @@ React 19, Vite 6, TypeScript, react-router 7 and Vitest with Testing Library and
 - **Vite dev server proxy:** `/api` and `/auth` → `http://localhost:8787`; `/ws` → `ws://localhost:8787` with `ws: true`.
 - Vitest uses the jsdom environment.
 
+## Theming
+
+- Define every token from the `design/README.md` table as a CSS variable on `:root`. Dark values are the default.
+- Light values apply under `@media (prefers-color-scheme: light)`, and also under `:root[data-theme="light"]`.
+- `:root[data-theme="dark"]` forces dark.
+- The app follows the system theme by default. A small theme toggle is optional; if you add one, store the choice in `localStorage` inside a try/catch.
+
 ## Pages and features
+
+Layout, sizes, copy and motion for each screen are in `design/README.md` → *Screens*. The behaviour required on top of that follows.
 
 ### Home `/`
 
 - `GET /api/me`.
-- **If 401:** show a "Log in with Discord" button linking to `/auth/login?next=<current path>`.
+- **If 401:** show "Log in with Discord", linking to `/auth/login?next=<current path>`.
 - **If logged in:**
-  - avatar and name, and log out (`POST /auth/logout`);
   - "Create room" (`POST /api/rooms`, then navigate to `/r/:code`);
-  - "Join room" code input, uppercased;
-  - leaderboard from `GET /api/stats`: name, played, W/L/D, win %.
-- **Dev builds only** (`import.meta.env.DEV`): show a "Dev login" name input as well. Store the name in `sessionStorage.litt_dev_user`.
+  - room-code input with "Join";
+  - avatar, name and "Log out" (`POST /auth/logout`).
+- Leaderboard from `GET /api/stats`.
+- **Dev builds only** (`import.meta.env.DEV`): show a "Dev login" name input as well. This is not in the design; style it like the room-code input. Store the name in `sessionStorage.litt_dev_user`.
   - When it is set, append `devUser=<name>` to every `/api/*` and `/ws/*` request. See "Dev identity" in the README.
-  - This lets one person open 6 tabs as 6 players.
   - Put this in one `apiUrl()` / `wsUrl()` helper so it is trivially removed from production.
 
 ### Room `/r/:code`
 
 **Connection:**
 - Open a WebSocket to `/ws/rooms/:code`, using the same origin with the `ws:` or `wss:` scheme.
-- Put the connection logic in a small `useRoomConnection` hook built on a framework-free `RoomSocket` class:
+- Put the connection logic in a `useRoomConnection` hook built on a framework-free `RoomSocket` class:
   - JSON encode and decode;
-  - reconnect with exponential backoff (0.5s → 8s max) and a visible "Reconnecting…" banner;
+  - reconnect with exponential backoff (0.5s → 8s max);
   - `ping` every 25s.
-- Keep client state in one reducer over `ServerMessage`s: `room`, `view`, `turnDeadline`, an event toast queue and the last error.
+- Show the design's **reconnect banner**: amber "Reconnecting…", then green "Connected. You're back in your seat."
+- Keep client state in one reducer over `ServerMessage`s: `room`, `view`, `turnDeadline`, an event queue and the last error.
 - On reconnect, the server re-sends `room.state` and `game.view`. Events are not replayed.
 
 **Lobby** (`status === "lobby"`):
-- Show three columns: Team A, Team B, Unassigned. Each player shows avatar, name, a host crown and a connected dot.
-- A copyable invite link (`location.href`).
-- **Host-only controls:**
-  - move a player between columns (buttons are fine; drag-and-drop is optional);
-  - a "Randomize teams" button, which sends `lobby.setTeam` for each player;
-  - a config form, which sends `lobby.setConfig`:
-    - wrong declaration: "Award to opponents" / "Nullify set";
-    - history limit (1–10, default 3);
-    - turn timer: off, or 15–600 s;
-  - a **Start** button, disabled with the reason shown until there are ≥6 players, everyone is assigned, and the teams are equal.
-- Non-hosts see everything read-only.
+- Implement it as designed:
+  - three columns (A / B / Unassigned);
+  - "Copy invite" showing "Copied ✓";
+  - the host's A/B move buttons and "Randomize teams", which sends `lobby.setTeam` per player;
+  - the "Table rules" panel, which sends `lobby.setConfig`: segmented wrong-declaration control, history stepper 1–10, timer chips Off/15/30/60/120;
+  - "Start game", disabled with the design's reason text until the conditions are met: ≥6 players, all assigned, equal teams.
+- Non-hosts see read-only controls and "Waiting for <host> to start".
 
-**Game table** (`status === "playing"`, driven entirely by `PlayerView`):
-- **Header:** score A vs B, my team, and the active player or chooser.
-  - Show a countdown from `turnDeadline`, if set.
-  - Show a clear "Your turn" state.
+**Game table** (`status === "playing"`, driven entirely by `PlayerView` + `room.players`):
+- **Header:** status pill and **timer ring** from `turnDeadline`, including the ≤10s warning state.
 - **Players:**
-  - two rows, my team and the opponents;
-  - name, avatar and connected dot (from `room.players`);
-  - an "out of cards" badge and an active-player highlight.
-  - **No hand sizes**; the view doesn't have them (this is intentional).
-- **My hand:**
-  - grouped by set, with set names "Low ♥ (2–7)", "High ♠ (9–A)" and "8s & Jokers";
-  - rendered as readable cards with rank and suit symbol, red ♥/♦, and Jokers. CSS/Unicode is fine; no image assets are needed.
-- **Sets panel:** all 9 sets with status — active, won by A, won by B, or null.
-- **Recent transfers:** the last N from `recentTransfers`, shown as "Bob → Alice: 5♥", newest first.
-- **Event toasts**, auto-dismissed after about 6s, worded for humans:
-  - `askFailed`: "Alice asked Bob for Q♠ — Bob doesn't have it. Bob's turn."
-  - `askSucceeded`, `declared` (correct or wrong, plus the outcome), `turnChanged`, `timedOut`, `gameOver`.
-- **Errors:** `error` messages show as a red toast.
+  - an opponents row and my-team row, with active highlight, "Out of cards" tags and connected dots;
+  - **never show hand sizes** (the view doesn't have them).
+- **Sets panel** from `view.sets`.
+- **My hand:** grouped by set.
+  - The group involved in the current ask or declare lifts.
+  - Play the deal and card-received animations.
+- **Action panel by phase:**
+  - **My turn (`turn`, me):** the Ask / Declare segmented control.
+    - **Ask:**
+      1. Set chips: active sets I hold where I'm missing at least one card.
+      2. Cards in that set I don't hold.
+      3. Opponent radio list. Out-of-cards opponents are dashed and disabled.
+      4. The button reads "Ask Bob for 5♥" and sends `game.ask`.
+    - **Declare:**
+      1. Set chips: active sets I hold at least one card of.
+      2. Six rows, each with a teammate picker. My own cards are prefilled and **locked**.
+      3. The button reads "Assign N more", then "Review declaration".
+      4. A review modal with the mode-dependent warning (from `view.config.wrongDeclaration`), then "Declare set", which sends `game.declare`.
+  - **Someone else's turn:** "Bob's turn".
+  - **Choose phase, I may choose:** "Pick who plays next" list of `eligible`, which sends `game.choose`. I may choose when `chooser.player === me`, or when `chooser.team === myTeam`.
+  - **Choose phase, someone else choosing:** "Waiting for X to pick who plays next" (or "Team B choosing").
+  - **Recent transfers:** from `view.recentTransfers`, numbered by `seq`, newest first, with the latest tagged "Now".
+- **Events:**
+  - `askSucceeded` and `askFailed` drive the **ask spotlight**. Follow the design's timing: "Asking…" for 0.7s, then the result, fading out at 3.2s. It must have `aria-live`.
+  - `declared`, `turnChanged`, `timedOut` and `gameOver` show as **toasts**: at most 2 at once, auto-dismissed after 6s. Word them for humans, e.g. "Maya declared Low ♥ — correct. Team A +1".
+  - Server `error` messages show as a toast in the `--bad` colour.
+- **Phones (<820px):**
+  - compact header;
+  - transfers inline above the hand;
+  - a bottom bar with Ask / Declare (or "Pick who plays next") that opens the action panel as a bottom sheet over a scrim.
+- **Sounds:** keep these simple, using Web Audio oscillators and no audio files. Play them for: your turn, card received, failed ask, correct and wrong declaration, and the timer tick in the last 5s. The header has a mute toggle, stored in `localStorage` inside a try/catch.
 
-**Ask flow** (only when the phase is `turn` and I am the player):
-1. Pick a card. Offer only cards that are in a set I hold at least one card of, that set is `ACTIVE`, and I don't hold the card.
-2. Pick an opponent. Offer only opponents who are not out of cards.
-3. Confirm. This sends `game.ask`.
-
-Implement these legality rules as pure functions in `src/game/legal.ts`, with unit tests.
-
-**Declare flow** (only on my turn):
-1. Choose an active set I hold at least one card of.
-2. For each of its 6 cards, pick which teammate holds it. My own cards are prefilled with me.
-3. Review the summary: "This cannot be undone. A wrong declaration gives the set to the other team / nullifies it." Use the room config to pick the wording.
-4. Send `game.declare` with the assignment.
-
-**Choose phase:**
-- If I may choose, show a picker of the `eligible` players. I may choose if `chooser.player === me`, or if `chooser.team === myTeam`.
-- Choosing sends `game.choose`.
-- Everyone else sees "Waiting for <chooser> to pick who plays next".
+Implement the ask and declare legality rules as pure functions in `src/game/legal.ts`, with unit tests.
 
 **Game over** (`status === "finished"` or phase `over`):
-- Show the result banner, the final score and each set's outcome.
-- The host gets "Rematch", which sends `room.rematch`. Everyone else sees "Waiting for host".
+- Follow the design:
+  - the kicker reads "You won" / "You lost" / "Final";
+  - the result reads "Team A wins." / "It's a draw.";
+  - the big score is shown in team colours.
+- The meta line is built from:
+  - nulls: the count of `NULL` in `view.resolutions`;
+  - transfers: `view.transferCount`;
+  - minutes: `room.endedAt - room.startedAt`.
+- "How the sets fell" comes from `view.resolutions`, in declared order: who declared each set and its status chip.
+- The host gets "Rematch", which sends `room.rematch`. Everyone gets "Back to home".
 
 ### General UI requirements
 
-- Works at 360px wide (phones) and on desktop. No horizontal scroll.
-- Light and dark mode via `prefers-color-scheme`.
-- Keyboard accessible: buttons are buttons and dialogs trap focus.
-- Use a calm card-table look. Clarity beats decoration: whose turn it is and what I can do must be obvious at a glance.
+- Match the design at desktop width (≥1340px and around 1024px) and at 360–390px phones, in both themes. No horizontal scroll.
+- Keyboard accessible: buttons are buttons, segmented controls and radio lists are proper radio groups, and modals and sheets trap focus and close on Esc.
+- Respect `prefers-reduced-motion`: disable the deal, pulse and spotlight motion, keeping instant state changes.
 
 ## Mock mode (required, for independent development)
 
 `src/mock/` contains an in-browser fake implementing the same `RoomSocket` interface and fake `/api` responses. It is enabled by `?mock=1` or `VITE_MOCK=1`.
 
-- It plays scripted sequences that exercise every UI state:
-  - lobby, as host and as non-host;
-  - my turn and someone else's turn;
-  - a successful and a failed ask;
+- Recreate the prototype's **PROTOTYPE** dev panel, a floating panel to jump between scenarios. Scenarios:
+  - home, logged out and logged in;
+  - lobby, as host and as non-host, both before and once the game can start;
+  - my turn (ask and declare);
+  - someone else's turn;
+  - a successful and a failed ask spotlight;
   - a correct and a wrong declaration;
-  - a choose phase, with me as chooser and as a non-chooser;
+  - a choose phase, with me choosing and someone else choosing;
   - out-of-cards players;
-  - the timer;
-  - a reconnect;
-  - game over.
-- Hand-write fixture `PlayerView`s. Do not use the real engine.
-- Add a small floating dev panel in mock mode to jump between scenarios.
+  - the timer warning;
+  - reconnecting;
+  - game over (win, loss and draw).
+- Use hand-written fixture `PlayerView`s and `RoomSnapshot`s. Do not use the real engine and do not port the prototype's bots.
 
 ## Tests
 
@@ -144,18 +172,20 @@ Implement these legality rules as pure functions in `src/game/legal.ts`, with un
 - Reducer tests: every `ServerMessage`, and reconnect behaviour.
 - `RoomSocket` backoff and ping, with a fake `WebSocket` and fake timers.
 - Component smoke tests:
-  - the lobby renders host vs non-host controls;
+  - the lobby renders host vs non-host controls, and the start-disabled reasons;
   - the table renders the hand grouped by set;
-  - the ask dialog only offers legal cards and targets;
-  - the declare dialog prefills my cards;
-  - the choose picker appears only for the chooser.
+  - the ask panel only offers legal sets, cards and targets;
+  - the declare panel prefills and locks my cards;
+  - the choose picker appears only for the chooser;
+  - the game-over screen uses `resolutions`, `transferCount` and `startedAt`/`endedAt`.
 
 ## Out of scope
 
-Server, engine and auth implementation; production hosting; drag-and-drop polish; sounds and animations beyond simple CSS transitions.
+Server, engine and auth implementation, production hosting, and drag-and-drop in the lobby (the design uses buttons).
 
 ## Done when
 
 - `npm run typecheck -w @litt/web`, `npm test -w @litt/web` and `npm run build -w @litt/web` pass.
 - Every scenario is viewable in mock mode via `npm run dev -w @litt/web` + `?mock=1`.
-- `tasks/reports/03.md` is written, including screenshots or a description of each screen if possible.
+- The screens visually match the design files side by side at desktop and phone widths, in dark and light.
+- `tasks/reports/03.md` is written. Include screenshots of each mock scenario if you can take them, and list any place you deliberately deviated from the design and why.

@@ -1,0 +1,868 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet data-dc-atomics>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#0b100d;-webkit-font-smoothing:antialiased}
+a{color:var(--Atx)}a:hover{color:var(--ink)}
+button{font-family:inherit}button:disabled{cursor:not-allowed}
+[data-litt]{--page:#0b100d;--bg:#121a16;--bg2:#16201b;--felt:#1c2b24;--surf:rgba(255,255,255,.04);--surf2:rgba(255,255,255,.08);--line:rgba(255,255,255,.07);--line2:rgba(255,255,255,.14);--ink:#ecefe9;--ink2:#b9c3bc;--mute:#8d9a92;--faint:#5f6b64;--A:oklch(0.74 0.12 60);--Atx:oklch(0.82 0.1 60);--Asoft:oklch(0.74 0.12 60 / .13);--Aline:oklch(0.74 0.12 60 / .4);--B:oklch(0.72 0.12 240);--Btx:oklch(0.82 0.09 240);--Bsoft:oklch(0.72 0.12 240 / .13);--Bline:oklch(0.72 0.12 240 / .4);--onA:#1b1408;--paper:#f7f5ef;--red:oklch(0.55 0.19 27);--blk:#1b1d1c;--btn:#ecefe9;--btnInk:#121a16;--ok:#5fc28a;--bad:oklch(0.68 0.18 25);--toast:#ecefe9;--toastInk:#121a16;--scrim:rgba(0,0,0,.55);--sheet:#18231e;--cardSh:0 1px 0 rgba(0,0,0,.2),0 10px 24px rgba(0,0,0,.35);--avA:oklch(0.4 0.07 60);--avB:oklch(0.36 0.06 240);--avN:#2c3d35}
+[data-litt="light"]{--page:#d9d5ca;--bg:#f2efe7;--bg2:#e9e5da;--felt:#faf8f3;--surf:rgba(20,30,25,.04);--surf2:rgba(20,30,25,.08);--line:rgba(20,30,25,.09);--line2:rgba(20,30,25,.18);--ink:#18201b;--ink2:#3d4842;--mute:#5a665f;--faint:#98a29b;--A:oklch(0.78 0.13 68);--Atx:oklch(0.5 0.12 55);--Asoft:oklch(0.78 0.13 68 / .2);--Aline:oklch(0.62 0.13 60 / .55);--B:oklch(0.6 0.13 245);--Btx:oklch(0.45 0.12 245);--Bsoft:oklch(0.6 0.13 245 / .12);--Bline:oklch(0.55 0.13 245 / .5);--paper:#ffffff;--red:oklch(0.55 0.2 27);--btn:#18201b;--btnInk:#f2efe7;--ok:#2f9a5e;--bad:oklch(0.55 0.2 25);--toast:#18201b;--toastInk:#f2efe7;--scrim:rgba(20,25,22,.35);--sheet:#fbfaf6;--cardSh:0 1px 0 rgba(0,0,0,.06),0 8px 20px rgba(40,40,30,.14);--avA:oklch(0.88 0.07 68);--avB:oklch(0.88 0.05 245);--avN:#dcd8cd}
+@keyframes litt-in{0%{transform:translateY(-40px) scale(.85) rotate(-6deg);opacity:0}60%{opacity:1}100%{transform:none;opacity:1}}
+@keyframes litt-toast{from{transform:translateY(14px);opacity:0}to{transform:none;opacity:1}}
+@keyframes litt-pulse{0%,100%{box-shadow:0 0 0 0 var(--glow)}50%{box-shadow:0 0 0 6px transparent}}
+@keyframes litt-warn{0%,100%{transform:scale(1)}50%{transform:scale(1.08)}}
+@keyframes litt-sheet{from{transform:translateY(100%)}to{transform:none}}
+@keyframes litt-pop{from{transform:translateY(10px) scale(.98);opacity:0}to{transform:none;opacity:1}}
+@keyframes litt-spin{to{transform:rotate(360deg)}}
+@keyframes litt-fade{from{opacity:0}to{opacity:1}}
+</style>
+</helmet>
+<div data-litt="{{ theme }}" style="min-height:100vh;background:var(--page);display:flex;justify-content:center;align-items:{{ outerAlign }};padding:{{ outerPad }};box-sizing:border-box;font-family:Geist,system-ui,sans-serif;color:var(--ink);transition:background .3s">
+<div style="position:relative;width:{{ appW }};height:{{ appH }};max-width:100%;border-radius:{{ appR }};overflow:hidden;background:var(--bg);display:flex;flex-direction:column;box-shadow:{{ appShadow }};transition:background .3s">
+
+<sc-if value="{{ isHome }}" hint-placeholder-val="{{ true }}">
+<div style="flex:1;min-height:0;overflow:auto;display:grid;grid-template-columns:{{ homeCols }}">
+<div style="padding:{{ heroPad }};display:flex;flex-direction:column;justify-content:space-between;gap:40px;background:radial-gradient(120% 90% at 20% 30%,var(--felt) 0%,var(--bg) 70%)">
+<div style="display:flex;align-items:center;gap:10px"><div style="width:22px;height:31px;border-radius:5px;background:var(--paper);border:1px solid var(--line);transform:rotate(-8deg);box-shadow:7px 2px 0 -1px var(--A)"></div><span style="font:400 30px/1 'Instrument Serif',serif">Litt</span></div>
+<div style="display:flex;flex-direction:column;gap:28px;max-width:560px">
+<h1 style="margin:0;font:400 {{ heroSize }}/0.98 'Instrument Serif',serif;letter-spacing:-.01em">Nine sets.<br><span style="font-style:italic;color:var(--Atx)">Two teams.</span><br>One memory.</h1>
+<p style="margin:0;font:400 16px/1.55 Geist;color:var(--mute);max-width:440px;text-wrap:pretty">Ask opponents for cards, keep track of who holds what, and declare sets with your team. Best played with friends on a voice call.</p>
+<sc-if value="{{ notLoggedIn }}" hint-placeholder-val="{{ true }}">
+<button onClick="{{ login }}" style="align-self:flex-start;height:52px;padding:0 24px;border:0;border-radius:12px;background:#5865f2;color:#fff;font:600 15px Geist;cursor:pointer;display:flex;align-items:center;gap:10px" style-hover="filter:brightness(1.08)"><span style="width:18px;height:14px;border-radius:5px 5px 7px 7px;background:#fff;opacity:.95"></span>Log in with Discord</button>
+</sc-if>
+<sc-if value="{{ loggedIn }}" hint-placeholder-val="{{ false }}">
+<div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap">
+<button onClick="{{ createRoom }}" style="height:52px;padding:0 26px;border:0;border-radius:12px;background:var(--A);color:var(--onA);font:600 15px Geist;cursor:pointer" style-hover="filter:brightness(1.06)">Create room</button>
+<div style="display:flex;height:52px;border-radius:12px;border:1px solid var(--line2);overflow:hidden"><input value="{{ joinCode }}" onChange="{{ onJoinCode }}" placeholder="ROOM CODE" maxlength="6" style="width:140px;background:transparent;border:0;padding:0 18px;color:var(--ink);font:500 15px 'Geist Mono',monospace;letter-spacing:.15em;outline:none"><button onClick="{{ join }}" disabled="{{ joinDisabled }}" style="border:0;border-left:1px solid var(--line2);background:var(--surf);color:var(--ink);padding:0 20px;font:500 14px Geist;cursor:pointer;opacity:{{ joinOp }}">Join</button></div>
+</div>
+</sc-if>
+</div>
+<sc-if value="{{ loggedIn }}" hint-placeholder-val="{{ false }}">
+<div style="display:flex;align-items:center;gap:12px"><div style="width:34px;height:34px;border-radius:50%;background:var(--avA);display:grid;place-items:center;font:600 13px Geist">DK</div><div style="display:flex;flex-direction:column;gap:2px"><span style="font:500 14px Geist">dharshen</span><span style="font:400 12px Geist;color:var(--mute)">Signed in with Discord</span></div><button onClick="{{ logout }}" style="margin-left:14px;background:none;border:0;color:var(--mute);font:400 13px Geist;text-decoration:underline;cursor:pointer">Log out</button></div>
+</sc-if>
+</div>
+<div style="background:var(--bg2);border-left:1px solid var(--line);padding:{{ heroPad }};display:flex;flex-direction:column;gap:22px">
+<div style="display:flex;justify-content:space-between;align-items:baseline"><h2 style="margin:0;font:400 30px 'Instrument Serif',serif">Leaderboard</h2><span style="font:400 12px 'Geist Mono',monospace;color:var(--mute)">W · L · D</span></div>
+<div style="display:flex;flex-direction:column">
+<sc-for list="{{ leaders }}" as="p" hint-placeholder-count="7">
+<div style="display:grid;grid-template-columns:24px 1fr auto 52px;gap:12px;align-items:center;padding:14px 0;border-bottom:1px solid var(--line)">
+<span style="font:500 12px 'Geist Mono',monospace;color:var(--faint)">{{ p.rank }}</span>
+<div style="display:flex;flex-direction:column;gap:2px"><span style="font:500 14px Geist;color:{{ p.ink }}">{{ p.name }}</span><span style="font:400 12px Geist;color:var(--mute)">{{ p.played }} played</span></div>
+<span style="font:400 13px 'Geist Mono',monospace;color:var(--ink2)">{{ p.wld }}</span>
+<span style="font:500 14px 'Geist Mono',monospace;text-align:right">{{ p.pct }}</span>
+</div>
+</sc-for>
+</div>
+</div>
+</div>
+</sc-if>
+
+<sc-if value="{{ isLobby }}" hint-placeholder-val="{{ false }}">
+<header style="min-height:68px;padding:12px {{ edge }};box-sizing:border-box;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;border-bottom:1px solid var(--line)">
+<div style="display:flex;align-items:baseline;gap:14px"><button onClick="{{ backHome }}" style="background:none;border:0;padding:0;color:var(--ink);font:400 26px 'Instrument Serif',serif;cursor:pointer">Litt</button><span style="font:500 13px 'Geist Mono',monospace;letter-spacing:.18em;color:var(--mute)">ROOM · K7QX</span></div>
+<div style="display:flex;align-items:center;gap:8px;height:38px;padding:0 5px 0 14px;border-radius:10px;background:var(--surf);border:1px solid var(--line)"><span style="font:400 13px 'Geist Mono',monospace;color:var(--ink2)">litt.gg/r/K7QX</span><button onClick="{{ copy }}" style="height:28px;padding:0 12px;border:0;border-radius:7px;background:var(--btn);color:var(--btnInk);font:600 12px Geist;cursor:pointer;min-width:92px">{{ copyLabel }}</button></div>
+</header>
+<div style="flex:1;min-height:0;overflow:auto;display:grid;grid-template-columns:{{ lobbyBodyCols }}">
+<div style="padding:24px {{ edge }};display:flex;flex-direction:column;gap:16px">
+<div style="display:flex;justify-content:space-between;align-items:center;gap:12px"><span style="font:400 14px Geist;color:var(--mute)">{{ lobbyNote }}</span><sc-if value="{{ isHost }}" hint-placeholder-val="{{ true }}"><button onClick="{{ randomize }}" style="height:34px;padding:0 14px;border-radius:9px;border:1px solid var(--line2);background:none;color:var(--ink);font:500 13px Geist;cursor:pointer" style-hover="background:var(--surf)">Randomize teams</button></sc-if></div>
+<div style="display:grid;grid-template-columns:{{ lobbyGrid }};gap:16px">
+<sc-for list="{{ lobbyCols }}" as="col" hint-placeholder-count="3">
+<div style="display:flex;flex-direction:column;gap:8px;padding:16px;border-radius:16px;background:{{ col.bg }};border:1px solid {{ col.border }};min-height:120px">
+<div style="display:flex;align-items:center;justify-content:space-between;padding:2px 4px 6px"><div style="display:flex;align-items:center;gap:10px"><span style="width:10px;height:10px;border-radius:50%;background:{{ col.color }}"></span><span style="font:600 14px Geist">{{ col.title }}</span></div><span style="font:500 12px 'Geist Mono',monospace;color:var(--mute)">{{ col.count }}</span></div>
+<sc-for list="{{ col.players }}" as="pl" hint-placeholder-count="2">
+<div style="display:flex;align-items:center;gap:12px;padding:9px 10px;border-radius:11px;background:var(--surf);animation:litt-pop .25s ease">
+<div style="position:relative;width:32px;height:32px;border-radius:50%;background:{{ pl.av }};display:grid;place-items:center;font:600 12px Geist;flex:none">{{ pl.ini }}<span style="position:absolute;right:-1px;bottom:-1px;width:9px;height:9px;border-radius:50%;background:var(--ok);border:2px solid var(--bg)"></span></div>
+<span style="flex:1;font:500 14px Geist;min-width:0">{{ pl.name }}</span>
+<span style="font:500 12px Geist;color:var(--Atx)">{{ pl.host }}</span>
+<sc-if value="{{ pl.canMove }}" hint-placeholder-val="{{ true }}"><div style="display:flex;gap:4px"><button onClick="{{ pl.toA }}" aria-label="Move to Team A" style="width:28px;height:28px;border-radius:7px;border:1px solid var(--line2);background:{{ pl.aBg }};color:{{ pl.aInk }};font:600 12px Geist;cursor:pointer">A</button><button onClick="{{ pl.toB }}" aria-label="Move to Team B" style="width:28px;height:28px;border-radius:7px;border:1px solid var(--line2);background:{{ pl.bBg }};color:{{ pl.bInk }};font:600 12px Geist;cursor:pointer">B</button></div></sc-if>
+</div>
+</sc-for>
+</div>
+</sc-for>
+</div>
+</div>
+<aside style="border-left:1px solid var(--line);border-top:1px solid var(--line);padding:24px {{ edge }};display:flex;flex-direction:column;gap:24px;background:var(--bg2)">
+<h2 style="margin:0;font:400 28px 'Instrument Serif',serif">Table rules</h2>
+<div style="display:flex;flex-direction:column;gap:10px"><span style="font:500 11px Geist;color:var(--mute);text-transform:uppercase;letter-spacing:.1em">Wrong declaration</span>
+<div style="display:grid;grid-template-columns:1fr 1fr;padding:4px;border-radius:11px;background:var(--surf)"><button onClick="{{ setWrongAward }}" disabled="{{ notHost }}" style="height:38px;border:0;border-radius:8px;background:{{ wrongAwardBg }};color:{{ wrongAwardInk }};font:600 13px Geist;cursor:pointer;transition:all .2s">Award to opponents</button><button onClick="{{ setWrongNull }}" disabled="{{ notHost }}" style="height:38px;border:0;border-radius:8px;background:{{ wrongNullBg }};color:{{ wrongNullInk }};font:600 13px Geist;cursor:pointer;transition:all .2s">Nullify set</button></div></div>
+<div style="display:flex;justify-content:space-between;align-items:center"><span style="font:500 11px Geist;color:var(--mute);text-transform:uppercase;letter-spacing:.1em">Queryable transfers</span>
+<div style="display:flex;align-items:center;gap:4px"><button onClick="{{ histDec }}" disabled="{{ notHost }}" aria-label="Fewer" style="width:30px;height:30px;border-radius:8px;border:1px solid var(--line2);background:none;color:var(--ink);font:500 16px Geist;cursor:pointer">−</button><span style="width:32px;text-align:center;font:500 15px 'Geist Mono',monospace">{{ history }}</span><button onClick="{{ histInc }}" disabled="{{ notHost }}" aria-label="More" style="width:30px;height:30px;border-radius:8px;border:1px solid var(--line2);background:none;color:var(--ink);font:500 16px Geist;cursor:pointer">+</button></div></div>
+<div style="display:flex;flex-direction:column;gap:10px"><span style="font:500 11px Geist;color:var(--mute);text-transform:uppercase;letter-spacing:.1em">Turn timer</span>
+<div style="display:flex;gap:6px;flex-wrap:wrap"><sc-for list="{{ timerOpts }}" as="o" hint-placeholder-count="5"><button onClick="{{ o.set }}" disabled="{{ notHost }}" style="padding:7px 12px;border-radius:8px;border:1px solid {{ o.border }};background:{{ o.bg }};color:{{ o.ink }};font:500 13px 'Geist Mono',monospace;cursor:pointer">{{ o.label }}</button></sc-for></div></div>
+<div style="margin-top:auto;display:flex;flex-direction:column;gap:10px">
+<sc-if value="{{ isHost }}" hint-placeholder-val="{{ true }}"><button onClick="{{ start }}" disabled="{{ cantStart }}" style="height:52px;border:0;border-radius:12px;background:{{ startBg }};color:{{ startInk }};font:600 15px Geist;cursor:pointer;transition:all .2s">Start game</button></sc-if>
+<sc-if value="{{ notHost }}" hint-placeholder-val="{{ false }}"><div style="height:52px;border-radius:12px;border:1px dashed var(--line2);display:flex;align-items:center;justify-content:center;gap:10px;font:500 14px Geist;color:var(--ink2)"><span style="width:14px;height:14px;border-radius:50%;border:2px solid var(--line2);border-top-color:var(--A);animation:litt-spin 1s linear infinite"></span>Waiting for Maya to start</div></sc-if>
+<span style="font:400 13px/1.45 Geist;color:var(--mute);text-align:center;min-height:19px">{{ startReason }}</span>
+</div>
+</aside>
+</div>
+</sc-if>
+
+<sc-if value="{{ isGame }}" hint-placeholder-val="{{ false }}">
+<header style="height:{{ hdrH }};flex:none;padding:0 {{ edge }};display:grid;grid-template-columns:{{ hdrCols }};align-items:center;gap:10px;border-bottom:1px solid var(--line)">
+<sc-if value="{{ isDesk }}" hint-placeholder-val="{{ true }}"><div style="display:flex;align-items:baseline;gap:14px"><span style="font:400 26px 'Instrument Serif',serif">Litt</span><span style="font:500 12px 'Geist Mono',monospace;letter-spacing:.18em;color:var(--faint)">K7QX</span></div></sc-if>
+<div style="display:flex;align-items:center;gap:{{ scoreGap }}"><span style="font:500 13px Geist;color:var(--Atx)">{{ labelA }}</span><span style="font:400 {{ scoreSize }}/1 'Instrument Serif',serif;display:inline-block;min-width:20px;text-align:center">{{ scoreA }}</span><span style="font:400 12px 'Geist Mono',monospace;color:var(--faint)">vs</span><span style="font:400 {{ scoreSize }}/1 'Instrument Serif',serif;display:inline-block;min-width:20px;text-align:center">{{ scoreB }}</span><span style="font:500 13px Geist;color:var(--Btx)">{{ labelB }}</span></div>
+<div style="display:flex;justify-content:flex-end;align-items:center;gap:10px">
+<div style="display:flex;align-items:center;gap:8px;height:34px;padding:0 14px;border-radius:17px;background:{{ statusBg }};border:1px solid {{ statusBorder }};color:{{ statusInk }};font:600 13px Geist;white-space:nowrap;transition:all .3s"><span style="width:7px;height:7px;border-radius:50%;background:{{ statusDot }}"></span>{{ statusText }}</div>
+<sc-if value="{{ showTimer }}" hint-placeholder-val="{{ false }}"><div style="width:38px;height:38px;border-radius:50%;background:conic-gradient({{ timerColor }} 0 {{ timerPct }},var(--surf2) {{ timerPct }} 100%);display:grid;place-items:center;animation:{{ timerAnim }};flex:none"><div style="width:30px;height:30px;border-radius:50%;background:var(--bg);display:grid;place-items:center;font:500 12px 'Geist Mono',monospace;color:{{ timerInk }}">{{ timerSecs }}</div></div></sc-if>
+<button onClick="{{ toggleMute }}" aria-label="{{ muteLabel }}" title="{{ muteLabel }}" style="width:34px;height:34px;border-radius:50%;border:1px solid var(--line2);background:none;color:var(--ink2);font:500 13px Geist;cursor:pointer;display:grid;place-items:center;flex:none">{{ muteIcon }}</button>
+</div>
+</header>
+<div style="flex:1;min-height:0;display:grid;grid-template-columns:{{ bodyCols }}">
+<main style="min-height:0;min-width:0;overflow-y:auto;overflow-x:hidden;padding:{{ mainPad }};display:flex;flex-direction:column;gap:{{ mainGap }};background:radial-gradient(80% 70% at 50% 45%,var(--felt) 0%,var(--bg) 85%)">
+<div style="display:flex;flex-direction:column;gap:8px"><span style="font:500 11px Geist;color:{{ oppLabelC }};text-transform:uppercase;letter-spacing:.12em">{{ oppLabel }}</span>
+<div style="display:flex;gap:8px">
+<sc-for list="{{ opps }}" as="p" hint-placeholder-count="3">
+<div style="flex:1;min-width:0;display:flex;align-items:center;gap:10px;padding:{{ tilePad }};border-radius:14px;background:{{ p.bg }};border:1px solid {{ p.border }};opacity:{{ p.op }};--glow:{{ p.glowC }};animation:{{ p.anim }};transition:background .3s,border-color .3s,opacity .3s">
+<div style="position:relative;width:{{ avSize }};height:{{ avSize }};border-radius:50%;background:{{ oppAv }};display:grid;place-items:center;font:600 11px Geist;flex:none">{{ p.ini }}<span style="position:absolute;right:-1px;bottom:-1px;width:9px;height:9px;border-radius:50%;background:var(--ok);border:2px solid var(--bg)"></span></div>
+<div style="display:flex;flex-direction:column;gap:1px;min-width:0"><span style="font:500 14px Geist;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ p.name }}</span><span style="font:500 11px Geist;color:{{ p.tagC }};white-space:nowrap">{{ p.tag }}</span></div>
+</div>
+</sc-for>
+</div></div>
+<div style="display:flex;flex-direction:column;gap:8px"><div style="display:flex;justify-content:space-between"><span style="font:500 11px Geist;color:var(--mute);text-transform:uppercase;letter-spacing:.12em">Sets · most won at the end wins</span><span style="font:400 12px 'Geist Mono',monospace;color:var(--faint)">{{ setsMeta }}</span></div>
+<div style="display:grid;grid-template-columns:{{ setCols }};gap:{{ setGap }}">
+<sc-for list="{{ sets }}" as="s" hint-placeholder-count="9">
+<div style="height:{{ setH }};box-sizing:border-box;border-radius:12px;padding:9px 10px;display:flex;flex-direction:column;justify-content:space-between;background:{{ s.bg }};border:1px solid {{ s.border }};transition:all .5s">
+<span style="font:500 13px Geist;color:{{ s.ink }};white-space:nowrap;min-width:0;overflow:hidden;text-overflow:ellipsis">{{ s.name }}</span>
+<div style="display:flex;justify-content:space-between;align-items:baseline;gap:4px"><span style="font:400 11px 'Geist Mono',monospace;color:{{ s.sub }}">{{ s.range }}</span><span style="font:600 10px Geist;color:{{ s.stC }};text-transform:uppercase;letter-spacing:.06em">{{ s.st }}</span></div>
+</div>
+</sc-for>
+</div></div>
+<div style="display:flex;flex-direction:column;gap:8px"><span style="font:500 11px Geist;color:{{ mateLabelC }};text-transform:uppercase;letter-spacing:.12em">{{ mateLabel }}</span>
+<div style="display:flex;gap:8px">
+<sc-for list="{{ mates }}" as="p" hint-placeholder-count="3">
+<div style="flex:1;min-width:0;display:flex;align-items:center;gap:10px;padding:{{ tilePad }};border-radius:14px;background:{{ p.bg }};border:1px solid {{ p.border }};opacity:{{ p.op }};--glow:{{ p.glowC }};animation:{{ p.anim }};transition:background .3s,border-color .3s,opacity .3s">
+<div style="position:relative;width:{{ avSize }};height:{{ avSize }};border-radius:50%;background:{{ mateAv }};display:grid;place-items:center;font:600 11px Geist;flex:none">{{ p.ini }}<span style="position:absolute;right:-1px;bottom:-1px;width:9px;height:9px;border-radius:50%;background:var(--ok);border:2px solid var(--bg)"></span></div>
+<div style="display:flex;flex-direction:column;gap:1px;min-width:0"><span style="font:500 14px Geist;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ p.name }}</span><span style="font:500 11px Geist;color:{{ p.tagC }};white-space:nowrap">{{ p.tag }}</span></div>
+</div>
+</sc-for>
+</div></div>
+<sc-if value="{{ isMob }}" hint-placeholder-val="{{ false }}">
+<div style="padding:12px 14px;border-radius:12px;background:var(--surf);display:flex;flex-direction:column;gap:7px">
+<div style="display:flex;justify-content:space-between"><span style="font:500 10px Geist;color:var(--mute);text-transform:uppercase;letter-spacing:.12em">Recent transfers</span><span style="font:400 11px 'Geist Mono',monospace;color:var(--faint)">{{ histLabel }}</span></div>
+<sc-if value="{{ noTransfers }}" hint-placeholder-val="{{ false }}"><span style="font:400 12px Geist;color:var(--faint)">No transfers yet.</span></sc-if>
+<sc-for list="{{ transfers }}" as="t" hint-placeholder-count="0"><div style="display:flex;justify-content:space-between;align-items:center;font:400 12px Geist;color:var(--ink2);opacity:{{ t.op }};animation:litt-fade .4s ease"><span>{{ t.from }} → {{ t.to }}</span><span style="padding:1px 6px;border-radius:4px;background:var(--paper);color:{{ t.color }};font:600 12px Geist;border:1px solid var(--line)">{{ t.card }}</span></div></sc-for>
+</div>
+</sc-if>
+<div style="margin-top:auto;display:flex;flex-direction:column;gap:10px;padding-top:6px"><span style="font:500 11px Geist;color:var(--mute);text-transform:uppercase;letter-spacing:.12em">Your hand</span>
+<sc-if value="{{ handEmpty }}" hint-placeholder-val="{{ false }}"><div style="height:{{ cardH }};border-radius:12px;border:1px dashed var(--line2);display:grid;place-items:center;font:400 14px Geist;color:var(--mute)">You are out of cards. Your team plays on.</div></sc-if>
+<div style="display:flex;flex-wrap:wrap;gap:{{ groupGap }};align-items:flex-end">
+<sc-for list="{{ hand }}" as="g" hint-placeholder-count="4">
+<div style="display:flex;flex-direction:column;gap:7px;transform:{{ g.lift }};transition:transform .25s cubic-bezier(.2,.8,.2,1)">
+<div style="display:flex;padding-right:{{ cardOverlapPos }}">
+<sc-for list="{{ g.cards }}" as="c" hint-placeholder-count="2">
+<div style="width:{{ cardW }};height:{{ cardH }};margin-right:{{ cardOverlap }};border-radius:9px;background:var(--paper);color:{{ c.color }};display:flex;flex-direction:column;justify-content:space-between;padding:7px 8px;box-sizing:border-box;box-shadow:var(--cardSh);border:1px solid rgba(0,0,0,.08);animation:{{ c.anim }}"><span style="font:600 {{ rankSize }}/1 Geist">{{ c.r }}</span><span style="font-size:{{ suitSize }};line-height:1;align-self:flex-end">{{ c.s }}</span></div>
+</sc-for>
+</div>
+<span style="font:500 12px Geist;color:{{ g.labelC }};white-space:nowrap">{{ g.name }}</span>
+</div>
+</sc-for>
+</div></div>
+</main>
+
+<sc-if value="{{ showSpot }}" hint-placeholder-val="{{ false }}">
+<div style="position:absolute;left:0;right:{{ toastRight }};top:{{ hdrH }};bottom:0;z-index:15;display:grid;place-items:center;padding:16px;pointer-events:none">
+<div role="status" aria-live="polite" style="display:flex;flex-direction:column;align-items:center;gap:16px;padding:{{ spotPad }};border-radius:22px;background:var(--sheet);border:1.5px solid {{ spotBorder }};box-shadow:0 30px 80px rgba(0,0,0,.35);opacity:{{ spotOp }};transform:{{ spotTf }};transition:opacity .22s ease,transform .3s cubic-bezier(.2,.8,.2,1),border-color .3s">
+<span style="font:600 11px Geist;color:{{ spotAcc }};text-transform:uppercase;letter-spacing:.14em;transition:color .3s">{{ spotKicker }}</span>
+<div style="display:flex;align-items:center;gap:{{ spotGap }}">
+<div style="display:flex;flex-direction:column;align-items:center;gap:8px;min-width:60px"><div style="width:{{ spotAvSize }};height:{{ spotAvSize }};border-radius:50%;background:{{ spotFromAv }};border:2px solid {{ spotFromRing }};display:grid;place-items:center;font:600 15px Geist">{{ spotFromIni }}</div><span style="font:500 14px Geist">{{ spotFromName }}</span></div>
+<div style="display:flex;flex-direction:column;align-items:center;gap:6px"><span style="font:500 11px Geist;color:var(--mute)">{{ spotVerb }}</span><div style="display:flex;align-items:center"><span style="width:{{ spotArrowW }};height:2px;background:{{ spotAcc }};transition:background .3s"></span><span style="width:0;height:0;border-top:6px solid transparent;border-bottom:6px solid transparent;border-left:9px solid {{ spotAcc }};transition:border-color .3s"></span></div></div>
+<div style="display:flex;flex-direction:column;align-items:center;gap:8px;min-width:60px"><div style="width:{{ spotAvSize }};height:{{ spotAvSize }};border-radius:50%;background:{{ spotToAv }};border:2px solid {{ spotToRing }};display:grid;place-items:center;font:600 15px Geist">{{ spotToIni }}</div><span style="font:500 14px Geist">{{ spotToName }}</span></div>
+</div>
+<div style="width:{{ spotCardW }};height:{{ spotCardH }};border-radius:12px;background:var(--paper);color:{{ spotColor }};border:1px solid rgba(0,0,0,.08);display:flex;flex-direction:column;justify-content:space-between;padding:10px 11px;box-sizing:border-box;box-shadow:{{ spotCardRing }};opacity:{{ spotCardOp }};transform:{{ spotCardTf }};transition:all .35s cubic-bezier(.2,.8,.2,1)"><span style="font:600 {{ spotRank }}/1 Geist">{{ spotR }}</span><span style="font-size:{{ spotSuit }};line-height:1;align-self:center">{{ spotS }}</span><span style="font:600 {{ spotRank }}/1 Geist;align-self:flex-end;transform:rotate(180deg)">{{ spotR }}</span></div>
+<div style="display:flex;align-items:center;gap:8px;padding:8px 14px;border-radius:999px;background:color-mix(in oklch, {{ spotAcc }} 16%, transparent);color:{{ spotAcc }};font:600 13px Geist;opacity:{{ spotResultVis }};transition:opacity .3s;text-align:center"><span>{{ spotIcon }}</span><span style="color:var(--ink)">{{ spotResult }}</span></div>
+</div>
+</div>
+</sc-if>
+<sc-if value="{{ showScrim }}" hint-placeholder-val="{{ false }}"><div onClick="{{ closeSheet }}" style="position:absolute;inset:0;background:var(--scrim);z-index:19;animation:litt-fade .2s ease"></div></sc-if>
+<aside style="display:{{ asideDisplay }};position:{{ asidePos }};left:0;right:0;bottom:0;z-index:20;max-height:{{ asideMaxH }};border-radius:{{ asideR }};border-left:{{ asideBorderL }};background:{{ asideBg }};box-shadow:{{ asideShadow }};animation:{{ asideAnim }};flex-direction:column;min-height:0;overflow:auto">
+<sc-if value="{{ isMob }}" hint-placeholder-val="{{ false }}"><div style="display:flex;justify-content:center;padding:10px 0 0"><button onClick="{{ closeSheet }}" aria-label="Close" style="width:44px;height:20px;border:0;background:none;cursor:pointer;display:grid;place-items:center"><span style="width:38px;height:4px;border-radius:2px;background:var(--line2)"></span></button></div></sc-if>
+<div style="padding:{{ panelPad }};display:flex;flex-direction:column;gap:18px;flex:1">
+
+<sc-if value="{{ pOther }}" hint-placeholder-val="{{ false }}">
+<div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;text-align:center;padding:24px 0">
+<div style="width:60px;height:60px;border-radius:50%;background:{{ otherAv }};display:grid;place-items:center;font:600 17px Geist;--glow:{{ otherGlow }};animation:litt-pulse 1.6s ease-in-out infinite;border:2px solid {{ otherRing }}">{{ otherIni }}</div>
+<div style="display:flex;flex-direction:column;gap:6px"><span style="font:400 30px/1.1 'Instrument Serif',serif">{{ otherTitle }}</span><span style="font:400 14px/1.5 Geist;color:var(--mute);max-width:240px">{{ otherSub }}</span></div>
+</div>
+</sc-if>
+
+<sc-if value="{{ pWaitChoose }}" hint-placeholder-val="{{ false }}">
+<div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;text-align:center;padding:24px 0">
+<span style="width:26px;height:26px;border-radius:50%;border:2.5px solid var(--line2);border-top-color:{{ waitColor }};animation:litt-spin 1s linear infinite"></span>
+<span style="font:400 28px/1.15 'Instrument Serif',serif;max-width:260px">{{ waitText }}</span>
+</div>
+</sc-if>
+
+<sc-if value="{{ pChoose }}" hint-placeholder-val="{{ false }}">
+<div style="display:flex;flex-direction:column;gap:6px"><span style="font:500 12px Geist;color:var(--Atx)">{{ chooseKicker }}</span><span style="font:400 30px/1.1 'Instrument Serif',serif">Pick who plays next</span></div>
+<div style="display:flex;flex-direction:column;gap:8px">
+<sc-for list="{{ chooseList }}" as="o" hint-placeholder-count="3">
+<button onClick="{{ o.pick }}" style="display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:12px;border:1px solid var(--line2);background:var(--surf);color:var(--ink);cursor:pointer;text-align:left;animation:litt-pop .25s ease" style-hover="border-color:var(--A);background:var(--Asoft)"><span style="width:34px;height:34px;border-radius:50%;background:{{ o.av }};display:grid;place-items:center;font:600 12px Geist">{{ o.ini }}</span><span style="flex:1;font:500 15px Geist">{{ o.name }}</span><span style="font:500 13px Geist;color:var(--mute)">Play →</span></button>
+</sc-for>
+</div>
+</sc-if>
+
+<sc-if value="{{ pMyTurn }}" hint-placeholder-val="{{ false }}">
+<div style="display:grid;grid-template-columns:1fr 1fr;padding:4px;border-radius:11px;background:var(--surf)"><button onClick="{{ tabAsk }}" style="height:36px;border:0;border-radius:8px;background:{{ tabAskBg }};color:{{ tabAskInk }};font:600 13px Geist;cursor:pointer;transition:all .2s">Ask</button><button onClick="{{ tabDecl }}" style="height:36px;border:0;border-radius:8px;background:{{ tabDeclBg }};color:{{ tabDeclInk }};font:600 13px Geist;cursor:pointer;transition:all .2s">Declare</button></div>
+
+<sc-if value="{{ isAskTab }}" hint-placeholder-val="{{ true }}">
+<div style="display:flex;flex-direction:column;gap:10px"><span style="font:500 12px Geist;color:var(--mute)">1 · Pick a set you hold</span>
+<div style="display:flex;gap:6px;flex-wrap:wrap"><sc-for list="{{ askSets }}" as="o" hint-placeholder-count="4"><button onClick="{{ o.pick }}" style="padding:7px 11px;border-radius:8px;border:1px solid {{ o.border }};background:{{ o.bg }};color:{{ o.ink }};font:500 12px Geist;cursor:pointer;transition:all .15s">{{ o.name }}</button></sc-for></div></div>
+<sc-if value="{{ askHasSet }}" hint-placeholder-val="{{ false }}">
+<div style="display:flex;flex-direction:column;gap:10px;animation:litt-fade .25s ease"><span style="font:500 12px Geist;color:var(--mute)">2 · Pick a card you don’t have</span>
+<div style="display:flex;gap:8px;flex-wrap:wrap"><sc-for list="{{ askCards }}" as="c" hint-placeholder-count="4"><button onClick="{{ c.pick }}" aria-label="{{ c.label }}" style="width:48px;height:68px;border-radius:8px;background:var(--paper);color:{{ c.color }};border:1px solid rgba(0,0,0,.08);display:flex;flex-direction:column;justify-content:space-between;padding:6px 7px;box-sizing:border-box;outline:{{ c.outline }};outline-offset:2px;transform:{{ c.lift }};transition:transform .15s;cursor:pointer;box-shadow:var(--cardSh)" style-hover="transform:translateY(-3px)"><span style="font:600 14px/1 Geist">{{ c.r }}</span><span style="font-size:19px;line-height:1;align-self:flex-end">{{ c.s }}</span></button></sc-for></div></div>
+<div style="display:flex;flex-direction:column;gap:10px"><span style="font:500 12px Geist;color:var(--mute)">3 · Pick an opponent</span>
+<div style="display:flex;flex-direction:column;gap:6px"><sc-for list="{{ askTargets }}" as="o" hint-placeholder-count="3"><button onClick="{{ o.pick }}" disabled="{{ o.disabled }}" style="display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:10px;background:{{ o.bg }};border:1px {{ o.bStyle }} {{ o.border }};color:{{ o.ink }};cursor:pointer;text-align:left;transition:all .15s"><span style="width:16px;height:16px;border-radius:50%;border:{{ o.radio }};box-sizing:border-box;flex:none;transition:all .15s"></span><span style="flex:1;font:500 14px Geist">{{ o.name }}</span><span style="font:400 12px Geist">{{ o.tag }}</span></button></sc-for></div></div>
+</sc-if>
+<sc-if value="{{ askNoTargets }}" hint-placeholder-val="{{ false }}"><span style="font:400 13px/1.5 Geist;color:var(--mute)">Every opponent is out of cards. Declare a set instead.</span></sc-if>
+<button onClick="{{ doAsk }}" disabled="{{ askDisabled }}" style="margin-top:auto;height:50px;border:0;border-radius:12px;background:{{ askBtnBg }};color:{{ askBtnInk }};font:600 15px Geist;cursor:pointer;transition:all .2s;flex:none">{{ askBtnLabel }}</button>
+</sc-if>
+
+<sc-if value="{{ isDeclTab }}" hint-placeholder-val="{{ false }}">
+<div style="display:flex;flex-direction:column;gap:10px"><span style="font:500 12px Geist;color:var(--mute)">1 · Pick a set you hold</span>
+<div style="display:flex;gap:6px;flex-wrap:wrap"><sc-for list="{{ declSets }}" as="o" hint-placeholder-count="4"><button onClick="{{ o.pick }}" style="padding:7px 11px;border-radius:8px;border:1px solid {{ o.border }};background:{{ o.bg }};color:{{ o.ink }};font:500 12px Geist;cursor:pointer;transition:all .15s">{{ o.name }}</button></sc-for></div></div>
+<sc-if value="{{ declHasSet }}" hint-placeholder-val="{{ false }}">
+<div style="display:flex;flex-direction:column;gap:6px;animation:litt-fade .25s ease"><span style="font:500 12px Geist;color:var(--mute);margin-bottom:4px">2 · Who holds each card?</span>
+<sc-for list="{{ declRows }}" as="d" hint-placeholder-count="6">
+<div style="display:flex;align-items:center;gap:10px;padding:5px 6px 5px 5px;border-radius:11px;background:var(--surf)">
+<div style="width:32px;height:44px;flex:none;border-radius:6px;background:var(--paper);color:{{ d.color }};border:1px solid rgba(0,0,0,.08);display:flex;flex-direction:column;justify-content:space-between;padding:4px 5px;box-sizing:border-box"><span style="font:600 11px/1 Geist">{{ d.r }}</span><span style="font-size:13px;line-height:1;align-self:flex-end">{{ d.s }}</span></div>
+<div style="flex:1;display:grid;grid-template-columns:repeat(3,1fr);gap:3px;padding:3px;border-radius:9px;background:var(--surf)">
+<sc-for list="{{ d.opts }}" as="o" hint-placeholder-count="3"><button onClick="{{ o.pick }}" disabled="{{ o.locked }}" style="height:30px;border:0;border-radius:6px;font:500 12px Geist;background:{{ o.bg }};color:{{ o.ink }};cursor:pointer;transition:all .15s;white-space:nowrap;overflow:hidden">{{ o.name }}</button></sc-for>
+</div>
+</div>
+</sc-for>
+</div>
+</sc-if>
+<sc-if value="{{ declNoSets }}" hint-placeholder-val="{{ false }}"><span style="font:400 13px/1.5 Geist;color:var(--mute)">You need at least one card from a set to declare it.</span></sc-if>
+<button onClick="{{ openReview }}" disabled="{{ declDisabled }}" style="margin-top:auto;height:50px;border:0;border-radius:12px;background:{{ declBtnBg }};color:{{ declBtnInk }};font:600 15px Geist;cursor:pointer;transition:all .2s;flex:none">{{ declBtnLabel }}</button>
+</sc-if>
+</sc-if>
+</div>
+<sc-if value="{{ isDesk }}" hint-placeholder-val="{{ true }}">
+<div style="padding:18px 24px 22px;border-top:1px solid var(--line);display:flex;flex-direction:column;gap:11px">
+<div style="display:flex;justify-content:space-between"><span style="font:500 11px Geist;color:var(--mute);text-transform:uppercase;letter-spacing:.12em">Recent transfers</span><span style="font:400 11px 'Geist Mono',monospace;color:var(--faint)">{{ histLabel }}</span></div>
+<sc-if value="{{ noTransfers }}" hint-placeholder-val="{{ false }}"><span style="font:400 13px Geist;color:var(--faint)">No transfers yet.</span></sc-if>
+<sc-for list="{{ transfers }}" as="t" hint-placeholder-count="0">
+<div style="display:flex;align-items:center;gap:10px;font:400 13px Geist;color:var(--ink2);opacity:{{ t.op }};padding:5px 8px;margin:0 -8px;border-radius:8px;background:{{ t.rowBg }};transition:background .6s"><span style="font:400 11px 'Geist Mono',monospace;color:var(--faint);width:26px">#{{ t.n }}</span><span style="flex:1">{{ t.from }} <span style="color:var(--faint)">→</span> {{ t.to }}</span><span style="font:600 10px Geist;color:var(--ok);text-transform:uppercase;letter-spacing:.08em">{{ t.curTag }}</span><span style="padding:2px 7px;border-radius:5px;background:var(--paper);border:1px solid var(--line);color:{{ t.color }};font:600 12px Geist">{{ t.card }}</span></div>
+</sc-for>
+</div>
+</sc-if>
+</aside>
+</div>
+<sc-if value="{{ isMob }}" hint-placeholder-val="{{ false }}">
+<div style="flex:none;padding:10px 16px 18px;border-top:1px solid var(--line);background:var(--bg)">
+<sc-if value="{{ pMyTurn }}" hint-placeholder-val="{{ false }}"><div style="display:grid;grid-template-columns:1fr 1fr;gap:10px"><button onClick="{{ openAsk }}" style="height:48px;border:0;border-radius:12px;background:var(--A);color:var(--onA);font:600 15px Geist;cursor:pointer">Ask</button><button onClick="{{ openDecl }}" style="height:48px;border-radius:12px;border:1px solid var(--line2);background:none;color:var(--ink);font:500 15px Geist;cursor:pointer">Declare</button></div></sc-if>
+<sc-if value="{{ pChoose }}" hint-placeholder-val="{{ false }}"><button onClick="{{ openAsk }}" style="width:100%;height:48px;border:0;border-radius:12px;background:var(--A);color:var(--onA);font:600 15px Geist;cursor:pointer">Pick who plays next</button></sc-if>
+<sc-if value="{{ mobIdle }}" hint-placeholder-val="{{ true }}"><div style="height:48px;display:flex;align-items:center;justify-content:center;font:500 14px Geist;color:var(--mute)">{{ mobIdleText }}</div></sc-if>
+</div>
+</sc-if>
+</sc-if>
+
+<sc-if value="{{ isOver }}" hint-placeholder-val="{{ false }}">
+<div style="flex:1;min-height:0;overflow:auto;display:grid;grid-template-columns:{{ overCols }}">
+<div style="padding:{{ heroPad }};display:flex;flex-direction:column;justify-content:space-between;gap:36px;background:radial-gradient(90% 80% at 30% 40%,{{ overGlow }} 0%,var(--bg) 75%)">
+<span style="font:400 26px 'Instrument Serif',serif">Litt</span>
+<div style="display:flex;flex-direction:column;gap:16px;animation:litt-pop .5s ease"><span style="font:500 13px Geist;color:var(--mute);text-transform:uppercase;letter-spacing:.14em">{{ overKicker }}</span><h1 style="margin:0;font:400 {{ overTitleSize }}/0.95 'Instrument Serif',serif">{{ overL1 }}<br><span style="font-style:italic">{{ overL2 }}</span></h1>
+<div style="display:flex;align-items:baseline;gap:18px;margin-top:6px"><span style="font:400 {{ overNumSize }}/1 'Instrument Serif',serif;color:var(--Atx)">{{ scoreA }}</span><span style="font:400 36px/1 'Instrument Serif',serif;color:var(--faint)">to</span><span style="font:400 {{ overNumSize }}/1 'Instrument Serif',serif;color:var(--Btx)">{{ scoreB }}</span></div>
+<span style="font:400 14px Geist;color:var(--mute)">{{ overMeta }}</span></div>
+<div style="display:flex;gap:12px;flex-wrap:wrap"><button onClick="{{ rematch }}" style="height:52px;padding:0 26px;border:0;border-radius:12px;background:var(--btn);color:var(--btnInk);font:600 15px Geist;cursor:pointer">Rematch</button><button onClick="{{ backHome }}" style="height:52px;padding:0 22px;border-radius:12px;border:1px solid var(--line2);background:none;color:var(--ink);font:500 15px Geist;cursor:pointer">Back to home</button></div>
+</div>
+<div style="padding:{{ heroPad }};display:flex;flex-direction:column;gap:18px;border-left:1px solid var(--line)">
+<h2 style="margin:0;font:400 30px 'Instrument Serif',serif">How the sets fell</h2>
+<div style="display:flex;flex-direction:column">
+<sc-for list="{{ finalSets }}" as="s" hint-placeholder-count="9">
+<div style="display:grid;grid-template-columns:1fr auto 84px;gap:14px;align-items:center;padding:12px 0;border-bottom:1px solid var(--line)">
+<span style="font:500 15px Geist">{{ s.name }}</span><span style="font:400 12px Geist;color:var(--mute)">{{ s.by }}</span>
+<span style="justify-self:end;padding:4px 10px;border-radius:6px;font:600 11px Geist;text-transform:uppercase;letter-spacing:.06em;background:{{ s.bg }};color:{{ s.ink }}">{{ s.st }}</span>
+</div>
+</sc-for>
+</div>
+</div>
+</div>
+</sc-if>
+
+<sc-if value="{{ showReview }}" hint-placeholder-val="{{ false }}">
+<div style="position:absolute;inset:0;z-index:40;background:var(--scrim);display:grid;place-items:center;padding:16px;animation:litt-fade .2s ease">
+<div role="dialog" aria-modal="true" style="width:440px;max-width:100%;border-radius:20px;background:var(--sheet);border:1px solid var(--line);box-shadow:0 40px 100px rgba(0,0,0,.4);padding:26px;box-sizing:border-box;display:flex;flex-direction:column;gap:18px;animation:litt-pop .25s ease">
+<div style="display:flex;flex-direction:column;gap:4px"><span style="font:500 12px Geist;color:var(--mute)">Review declaration</span><span style="font:400 34px/1.05 'Instrument Serif',serif">{{ reviewTitle }}</span></div>
+<div style="display:flex;flex-direction:column;gap:10px">
+<sc-for list="{{ reviewGroups }}" as="r" hint-placeholder-count="3">
+<div style="display:flex;align-items:center;gap:14px;padding:10px 12px;border-radius:12px;background:var(--surf)"><span style="width:56px;font:500 14px Geist">{{ r.name }}</span><div style="display:flex;gap:6px;flex-wrap:wrap"><sc-for list="{{ r.cards }}" as="c" hint-placeholder-count="2"><span style="padding:3px 8px;border-radius:6px;background:var(--paper);border:1px solid var(--line);color:{{ c.color }};font:600 13px Geist">{{ c.label }}</span></sc-for></div></div>
+</sc-for>
+</div>
+<p style="margin:0;font:400 13px/1.5 Geist;color:var(--mute)">{{ reviewWarn }}</p>
+<div style="display:grid;grid-template-columns:auto 1fr;gap:10px"><button onClick="{{ closeReview }}" style="height:48px;padding:0 18px;border-radius:12px;border:1px solid var(--line2);background:none;color:var(--ink);font:500 14px Geist;cursor:pointer">Back</button><button onClick="{{ confirmDeclare }}" style="height:48px;border:0;border-radius:12px;background:var(--A);color:var(--onA);font:600 14px Geist;cursor:pointer">Declare set</button></div>
+</div>
+</div>
+</sc-if>
+
+<div style="position:absolute;left:0;right:{{ toastRight }};top:{{ toastTop }};bottom:{{ toastBottom }};z-index:30;display:flex;flex-direction:column;align-items:center;gap:8px;padding:0 14px;pointer-events:none">
+<sc-for list="{{ toasts }}" as="t" hint-placeholder-count="0">
+<div style="max-width:560px;display:flex;align-items:center;gap:12px;padding:12px 16px 12px 12px;border-radius:14px;background:{{ t.bg }};color:{{ t.ink }};box-shadow:0 16px 40px rgba(0,0,0,.3);animation:litt-toast .3s cubic-bezier(.2,.8,.2,1);pointer-events:auto">
+<span style="flex:none;min-width:34px;height:44px;padding:0 4px;box-sizing:border-box;border-radius:6px;background:{{ t.chipBg }};border:1px solid rgba(0,0,0,.1);color:{{ t.chipInk }};display:grid;place-items:center;font:600 13px Geist">{{ t.chip }}</span>
+<span style="font:400 14px/1.4 Geist;text-wrap:pretty">{{ t.text }}</span>
+</div>
+</sc-for>
+</div>
+
+<sc-if value="{{ showRecon }}" hint-placeholder-val="{{ false }}">
+<div style="position:absolute;left:0;right:0;top:0;z-index:50;height:34px;display:flex;align-items:center;justify-content:center;gap:10px;background:{{ reconBg }};color:{{ reconInk }};font:600 13px Geist;animation:litt-fade .2s ease"><sc-if value="{{ reconSpin }}" hint-placeholder-val="{{ true }}"><span style="width:12px;height:12px;border-radius:50%;border:2px solid currentColor;border-top-color:transparent;animation:litt-spin .8s linear infinite"></span></sc-if>{{ reconText }}</div>
+</sc-if>
+</div>
+
+<sc-if value="{{ showDev }}" hint-placeholder-val="{{ true }}">
+<div style="position:fixed;left:14px;bottom:14px;z-index:100;display:flex;flex-direction:column;gap:6px;padding:8px;border-radius:12px;background:rgba(15,20,18,.92);color:#ecefe9;box-shadow:0 10px 30px rgba(0,0,0,.35);font:500 12px Geist;max-width:200px">
+<button onClick="{{ toggleDev }}" style="height:26px;border:0;background:none;color:#8d9a92;font:600 11px 'Geist Mono',monospace;letter-spacing:.1em;text-align:left;cursor:pointer;padding:0 6px">{{ devLabel }}</button>
+<sc-if value="{{ devOpen }}" hint-placeholder-val="{{ false }}">
+<sc-for list="{{ devActions }}" as="a" hint-placeholder-count="6"><button onClick="{{ a.run }}" disabled="{{ a.disabled }}" style="height:30px;padding:0 10px;border-radius:7px;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.04);color:#ecefe9;font:500 12px Geist;text-align:left;cursor:pointer;opacity:{{ a.op }}" style-hover="background:rgba(255,255,255,.1)">{{ a.label }}</button></sc-for>
+</sc-if>
+</div>
+</sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;theme&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;auto&quot;,&quot;dark&quot;,&quot;light&quot;],&quot;default&quot;:&quot;auto&quot;,&quot;tsType&quot;:&quot;'auto'|'dark'|'light'&quot;,&quot;section&quot;:&quot;Look&quot;},&quot;layout&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;auto&quot;,&quot;phone&quot;],&quot;default&quot;:&quot;auto&quot;,&quot;tsType&quot;:&quot;'auto'|'phone'&quot;,&quot;section&quot;:&quot;Look&quot;},&quot;sound&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Behavior&quot;},&quot;devPanel&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Behavior&quot;}}">
+const SUITS = ['C', 'D', 'H', 'S'], SYM = { C: '♣', D: '♦', H: '♥', S: '♠' };
+const SETS = [];
+SUITS.forEach(s => SETS.push({ id: 'L' + s, name: 'Low ' + SYM[s], full: 'Low ' + SYM[s] + ' (2–7)', range: '2–7', cards: ['2', '3', '4', '5', '6', '7'].map(r => r + s) }));
+SUITS.forEach(s => SETS.push({ id: 'H' + s, name: 'High ' + SYM[s], full: 'High ' + SYM[s] + ' (9–A)', range: '9–A', cards: ['9', '10', 'J', 'Q', 'K', 'A'].map(r => r + s) }));
+SETS.push({ id: 'EJ', name: '8s & J', full: '8s & Jokers', range: '8 · ★', cards: ['8C', '8D', '8H', '8S', 'JK1', 'JK2'] });
+const SET_OF = {}; SETS.forEach(s => s.cards.forEach(c => SET_OF[c] = s.id));
+const SETM = Object.fromEntries(SETS.map(s => [s.id, s]));
+const ORDER = Object.fromEntries(SETS.flatMap(s => s.cards).map((c, i) => [c, i]));
+const cv = id => {
+  if (id.startsWith('JK')) return { id, r: 'JK', s: '★', red: id === 'JK1', label: id === 'JK1' ? 'Red Joker' : 'Black Joker' };
+  const su = id.slice(-1), r = id.slice(0, -1);
+  return { id, r, s: SYM[su], red: su === 'H' || su === 'D', label: r + SYM[su] };
+};
+const col = c => cv(c).red ? 'var(--red)' : 'var(--blk)';
+const PLAYERS = [
+  { id: 'me', name: 'dharshen', ini: 'DK' }, { id: 'maya', name: 'Maya', ini: 'MA' }, { id: 'eve', name: 'Eve', ini: 'EV' },
+  { id: 'bob', name: 'Bob', ini: 'BO' }, { id: 'priya', name: 'Priya', ini: 'PR' }, { id: 'frank', name: 'Frank', ini: 'FR' },
+];
+const PM = Object.fromEntries(PLAYERS.map(p => [p.id, p]));
+const S = p => p === 'me' ? 'You' : PM[p].name;
+const O = p => p === 'me' ? 'you' : PM[p].name;
+const turnOf = p => p === 'me' ? 'Your turn' : PM[p].name + '’s turn';
+const shuffle = a => { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+const pickR = a => a[Math.floor(Math.random() * a.length)];
+const clone = o => JSON.parse(JSON.stringify(o));
+const UI0 = { tab: 'ask', askSet: null, askCard: null, askTarget: null, declSet: null, assign: {}, review: false };
+const TEAMS0 = { me: 'A', maya: 'A', bob: 'B', priya: 'B', eve: null, frank: null };
+
+class Component extends DCLogic {
+  state = {
+    screen: 'home', loggedIn: false, joinCode: '', isHost: true, teams: { ...TEAMS0 },
+    cfg: { wrong: 'award', history: 3, timer: 60 }, copied: false, g: null, now: Date.now(),
+    ui: { ...UI0 }, sheet: false, toasts: [], recon: 0, muted: false, speed: 1, devOpen: false,
+    width: typeof window !== 'undefined' ? window.innerWidth : 1280, sysDark: true, stats: { w: 24, l: 14, d: 1 },
+  };
+
+  componentDidMount() {
+    this.onResize = () => this.setState({ width: window.innerWidth });
+    window.addEventListener('resize', this.onResize);
+    this.mq = window.matchMedia('(prefers-color-scheme: dark)');
+    this.onMq = () => this.setState({ sysDark: this.mq.matches });
+    this.mq.addEventListener?.('change', this.onMq); this.onMq();
+    this.iv = setInterval(() => this.tick(), 250);
+  }
+  componentWillUnmount() {
+    window.removeEventListener('resize', this.onResize);
+    this.mq.removeEventListener?.('change', this.onMq);
+    clearInterval(this.iv); clearTimeout(this.botT);
+  }
+  componentDidUpdate() { this.schedule(); }
+
+  sound(k) {
+    if (this.state.muted || this.props.sound === false) return;
+    try {
+      const C = this.ac || (this.ac = new (window.AudioContext || window.webkitAudioContext)());
+      const t0 = C.currentTime;
+      const tone = (f, d, at = 0, type = 'sine', v = 0.08) => {
+        const o = C.createOscillator(), g = C.createGain();
+        o.type = type; o.frequency.setValueAtTime(f, t0 + at);
+        g.gain.setValueAtTime(0.0001, t0 + at); g.gain.exponentialRampToValueAtTime(v, t0 + at + 0.012); g.gain.exponentialRampToValueAtTime(0.0001, t0 + at + d);
+        o.connect(g); g.connect(C.destination); o.start(t0 + at); o.stop(t0 + at + d + 0.05);
+      };
+      ({
+        turn: () => { tone(660, 0.25); tone(990, 0.35, 0.12); },
+        got: () => { tone(740, 0.12, 0, 'triangle'); tone(1110, 0.18, 0.07, 'triangle'); },
+        soft: () => tone(540, 0.1, 0, 'triangle', 0.04),
+        fail: () => { tone(260, 0.18, 0, 'triangle', 0.07); tone(196, 0.28, 0.1, 'triangle', 0.07); },
+        win: () => [523, 659, 784, 1047].forEach((f, i) => tone(f, 0.3, i * 0.08, 'triangle', 0.07)),
+        wrong: () => { tone(233, 0.25, 0, 'sawtooth', 0.025); tone(185, 0.4, 0.15, 'sawtooth', 0.025); },
+        tick: () => tone(1400, 0.04, 0, 'square', 0.02),
+        deal: () => [0, 1, 2, 3, 4, 5].forEach(i => tone(880 + i * 30, 0.04, i * 0.05, 'triangle', 0.03)),
+      }[k] || (() => {}))();
+    } catch (e) {}
+  }
+
+  toast(text, kind = 'info', card = null) {
+    const id = Math.random().toString(36).slice(2);
+    this.setState(s => ({ toasts: [...s.toasts, { id, text, kind, card }].slice(-2) }));
+    setTimeout(() => this.setState(s => ({ toasts: s.toasts.filter(t => t.id !== id) })), 6000);
+  }
+
+  team = p => this.state.teams[p];
+  other = t => t === 'A' ? 'B' : 'A';
+  members = t => PLAYERS.map(p => p.id).filter(p => this.state.teams[p] === t);
+  dl = () => this.state.cfg.timer ? Date.now() + this.state.cfg.timer * 1000 : null;
+  canIChoose = g => g && g.phase.kind === 'choose' && (g.phase.chooser === 'me' || (g.phase.chooser === null && g.phase.team === this.team('me')));
+
+  setG(g, extra = {}) {
+    const old = this.state.g;
+    const nowMine = g.phase.kind === 'turn' && g.active === 'me';
+    const wasMine = old && old.phase.kind === 'turn' && old.active === 'me';
+    if (nowMine && !wasMine) setTimeout(() => this.sound('turn'), 350);
+    const ui = nowMine ? (wasMine ? this.state.ui : { ...UI0 }) : { ...UI0 };
+    this.setState({ g, ui: extra.ui || ui, sheet: nowMine && wasMine ? this.state.sheet : false, ...extra });
+  }
+
+  tick() {
+    const s = this.state, now = Date.now();
+    this.setState({ now });
+    const g = s.g;
+    if (s.screen !== 'game' || !g || g.phase.kind !== 'turn' || !g.deadline || s.recon === 1) return;
+    const left = Math.ceil((g.deadline - now) / 1000);
+    if (g.active === 'me' && left <= 5 && left > 0 && left !== this.lastTick) { this.lastTick = left; this.sound('tick'); }
+    if (now >= g.deadline) this.timeout();
+  }
+
+  startGame() {
+    const deck = shuffle(SETS.flatMap(s => s.cards));
+    const ids = PLAYERS.map(p => p.id), hands = {};
+    ids.forEach(p => hands[p] = []);
+    deck.forEach((c, i) => hands[ids[i % ids.length]].push(c));
+    const active = pickR(ids);
+    const g = { hands, sets: Object.fromEntries(SETS.map(s => [s.id, 'active'])), setBy: {}, active, phase: { kind: 'turn' }, transfers: [], tcount: 0, deadline: this.dl(), started: Date.now(), lastGot: null, dealt: Date.now() };
+    this.state.g = null;
+    this.setG(g, { screen: 'game', toasts: [], ui: { ...UI0 } });
+    this.sound('deal');
+    this.toast(`Cards dealt. ${active === 'me' ? 'You go first.' : PM[active].name + ' goes first.'}`, 'info');
+  }
+
+  ask(asker, target, card) {
+    const g = clone(this.state.g), has = g.hands[target].includes(card), c = cv(card).label;
+    if (has) {
+      g.hands[target] = g.hands[target].filter(x => x !== card);
+      g.hands[asker].push(card);
+      g.tcount++;
+      g.transfers.unshift({ n: g.tcount, from: target, to: asker, card });
+      if (asker === 'me') g.lastGot = card;
+      g.deadline = this.dl();
+      this.showSpot(asker, target, card, true, g.tcount);
+      setTimeout(() => this.sound(asker === 'me' ? 'got' : 'soft'), 700);
+      const ui = { ...this.state.ui, askCard: null };
+      this.setG(g, { ui });
+    } else {
+      g.active = target; g.deadline = this.dl();
+      this.showSpot(asker, target, card, false, null);
+      setTimeout(() => this.sound('fail'), 700);
+      this.setG(g);
+    }
+  }
+
+  showSpot(from, to, card, ok, n) {
+    const id = Math.random().toString(36).slice(2), at = Date.now();
+    this.setState({ spot: { id, from, to, card, ok, n, at } });
+    [40, 720, 3200].forEach(d => setTimeout(() => this.setState({ now: Date.now() }), d));
+    setTimeout(() => this.setState(s => (s.spot && s.spot.id === id ? { spot: null } : null)), 3600);
+  }
+
+  declare(decl, setId, assign) {
+    const g = clone(this.state.g), set = SETM[setId];
+    const ok = set.cards.every(c => (g.hands[assign[c]] || []).includes(c));
+    Object.keys(g.hands).forEach(p => g.hands[p] = g.hands[p].filter(c => SET_OF[c] !== setId));
+    const T = this.team(decl), Ot = this.other(T);
+    const res = ok ? T : (this.state.cfg.wrong === 'award' ? Ot : 'null');
+    g.sets[setId] = res; g.setBy[setId] = { by: decl, ok };
+    const mine = T === this.team('me');
+    this.toast(ok ? `${S(decl)} declared ${set.full} correctly. Team ${T} wins the set.` : `${S(decl)} declared ${set.full} wrong. ${res === 'null' ? 'The set is nullified.' : 'Team ' + Ot + ' gets the set.'}`, ok ? 'good' : 'bad', null);
+    this.sound(ok ? (mine ? 'win' : 'soft') : (mine ? 'wrong' : 'got'));
+    if (SETS.every(s => g.sets[s.id] !== 'active')) {
+      g.phase = { kind: 'over' }; g.deadline = null; g.ended = Date.now();
+      const a = SETS.filter(s => g.sets[s.id] === 'A').length, b = SETS.filter(s => g.sets[s.id] === 'B').length;
+      const myT = this.team('me'), my = myT === 'A' ? a : b, th = myT === 'A' ? b : a;
+      const st = { ...this.state.stats }; if (my > th) st.w++; else if (my < th) st.l++; else st.d++;
+      this.setG(g, { stats: st });
+      setTimeout(() => this.setState({ screen: 'over', toasts: [] }), 1800);
+      return;
+    }
+    let team = ok ? T : Ot, chooser = ok ? decl : null;
+    let elig = this.members(team).filter(p => g.hands[p].length);
+    if (!elig.length) { team = this.other(team); chooser = null; elig = this.members(team).filter(p => g.hands[p].length); }
+    g.phase = { kind: 'choose', team, chooser, eligible: elig }; g.deadline = null;
+    this.setG(g, { ui: { ...UI0 } });
+  }
+
+  choose(pid) {
+    const g = clone(this.state.g), ph = g.phase;
+    const who = ph.chooser ? S(ph.chooser) : 'Team ' + ph.team;
+    g.active = pid; g.phase = { kind: 'turn' }; g.deadline = this.dl();
+    this.toast(`${who} picked ${pid === ph.chooser ? (pid === 'me' ? 'yourself' : 'themselves') : O(pid)}. ${turnOf(pid)}.`, 'info');
+    this.setG(g);
+  }
+
+  timeout() {
+    const g = clone(this.state.g), a = g.active;
+    let pool = this.members(this.other(this.team(a))).filter(p => g.hands[p].length);
+    if (!pool.length) pool = this.members(this.team(a)).filter(p => g.hands[p].length);
+    const nx = pickR(pool);
+    g.active = nx; g.deadline = this.dl();
+    this.toast(`Time’s up for ${O(a)}. ${turnOf(nx)}.`, 'bad');
+    this.sound('fail');
+    this.setG(g);
+  }
+
+  schedule() {
+    const s = this.state;
+    if (this.botT) return;
+    if (s.screen === 'lobby' && !s.isHost && !this.lobbyAuto) {
+      this.lobbyAuto = true;
+      this.botT = setTimeout(() => { this.botT = null; if (this.state.screen !== 'lobby' || this.state.isHost) return; this.randomize(); setTimeout(() => this.state.screen === 'lobby' && this.startGame(), 1600); }, 2600);
+      return;
+    }
+    if (s.screen !== 'game' || !s.g || s.recon === 1) return;
+    const g = s.g;
+    let act = null;
+    if (g.phase.kind === 'turn' && g.active !== 'me') act = () => this.botTurn();
+    else if (g.phase.kind === 'choose' && !this.canIChoose(g)) act = () => this.botChoose();
+    if (!act) return;
+    this.botT = setTimeout(() => { this.botT = null; if (this.state.recon !== 1 && this.state.screen === 'game') act(); }, (2000 + Math.random() * 1000) / s.speed);
+  }
+
+  botChoose() {
+    const g = this.state.g; if (!g || g.phase.kind !== 'choose' || this.canIChoose(g)) return;
+    this.choose(pickR(g.phase.eligible));
+  }
+
+  botTurn() {
+    const g = this.state.g; if (!g || g.phase.kind !== 'turn' || g.active === 'me') return;
+    const me = g.active, T = this.team(me), mates = this.members(T), hand = g.hands[me];
+    if (!hand.length) return;
+    const held = [...new Set(hand.map(c => SET_OF[c]))].filter(id => g.sets[id] === 'active');
+    for (const id of held) {
+      const owner = {}; SETM[id].cards.forEach(c => owner[c] = mates.find(p => g.hands[p].includes(c)));
+      if (SETM[id].cards.every(c => owner[c])) {
+        const assign = { ...owner };
+        if (Math.random() < 0.15) { const c = pickR(SETM[id].cards.filter(c => owner[c] !== me)) || SETM[id].cards[0]; assign[c] = pickR(mates.filter(p => p !== owner[c])); }
+        return this.declare(me, id, assign);
+      }
+    }
+    const targets = this.members(this.other(T)).filter(p => g.hands[p].length);
+    const cards = held.flatMap(id => SETM[id].cards).filter(c => !hand.includes(c));
+    if (!targets.length || !cards.length) return this.timeout();
+    const hits = []; cards.forEach(c => targets.forEach(t => g.hands[t].includes(c) && hits.push([c, t])));
+    const [c, t] = hits.length && Math.random() < 0.5 ? pickR(hits) : [pickR(cards), pickR(targets)];
+    this.ask(me, t, c);
+  }
+
+  randomize() {
+    const ids = shuffle(PLAYERS.map(p => p.id)), teams = {};
+    ids.forEach((p, i) => teams[p] = i < 3 ? 'A' : 'B');
+    this.setState({ teams });
+  }
+
+  fastForward() {
+    const g = clone(this.state.g); if (!g) return;
+    const act = SETS.filter(s => g.sets[s.id] === 'active');
+    const keep = act.find(s => g.hands.me.some(c => SET_OF[c] === s.id)) || act[0];
+    act.forEach(s => {
+      if (s === keep) return;
+      g.sets[s.id] = pickR(['A', 'B', 'A', 'B', 'null']);
+      g.setBy[s.id] = { by: pickR(PLAYERS).id, ok: g.sets[s.id] !== 'null' };
+      Object.keys(g.hands).forEach(p => g.hands[p] = g.hands[p].filter(c => SET_OF[c] !== s.id));
+    });
+    const holders = PLAYERS.map(p => p.id).filter(p => g.hands[p].length);
+    g.active = g.hands.me.length ? 'me' : holders[0]; g.phase = { kind: 'turn' }; g.deadline = this.dl();
+    this.state.g = null;
+    this.setG(g);
+    this.toast('Skipped ahead. One set left to play.', 'info');
+  }
+
+  disconnect() {
+    this.setState({ recon: 1 });
+    setTimeout(() => { this.setState({ recon: 2 }); this.sound('soft'); }, 2400);
+    setTimeout(() => this.setState({ recon: 0 }), 3800);
+  }
+
+  renderVals() {
+    const s = this.state, g = s.g, ui = s.ui;
+    const phone = this.props.layout === 'phone';
+    const isMob = phone || s.width < 820, isDesk = !isMob;
+    const tp = this.props.theme || 'auto';
+    const theme = tp === 'auto' ? (s.sysDark ? 'dark' : 'light') : tp;
+    const myT = this.team('me') || 'A', thT = this.other(myT);
+    const set = (k, v) => this.setState({ [k]: v });
+    const setUi = patch => this.setState(st => ({ ui: { ...st.ui, ...patch } }));
+    const sel = on => on ? { bg: 'var(--btn)', ink: 'var(--btnInk)', border: 'var(--btn)' } : { bg: 'transparent', ink: 'var(--ink2)', border: 'var(--line2)' };
+    const av = p => this.team(p) === 'B' ? 'var(--avB)' : this.team(p) === 'A' ? 'var(--avA)' : 'var(--avN)';
+
+    const base = {
+      theme, isMob, isDesk,
+      outerAlign: phone ? 'center' : 'stretch', outerPad: phone ? '24px 0' : '0',
+      appW: phone ? '390px' : '100%', appH: phone ? '844px' : '100vh', appR: phone ? '40px' : '0',
+      appShadow: phone ? '0 30px 80px rgba(0,0,0,.35), 0 0 0 10px #111, 0 0 0 11px #333' : 'none',
+      edge: isMob ? '18px' : '32px',
+      isHome: s.screen === 'home', isLobby: s.screen === 'lobby', isGame: s.screen === 'game', isOver: s.screen === 'over',
+      backHome: () => { this.setState({ screen: 'home', g: null, toasts: [] }); },
+      heroPad: isMob ? '28px 22px' : '56px 64px', heroSize: isMob ? '50px' : '76px', homeCols: isMob ? '1fr' : 'minmax(0,1fr) 420px',
+      toastTop: isMob ? (s.screen === 'game' ? '76px' : '16px') : (s.screen === 'game' ? '84px' : 'auto'), toastBottom: isMob || s.screen === 'game' ? 'auto' : '28px', toastRight: isDesk && s.screen === 'game' ? '340px' : '0',
+      toasts: s.toasts.map(t => {
+        const c = t.card ? cv(t.card) : null;
+        const k = { good: ['var(--toast)', 'var(--toastInk)'], bad: ['var(--toast)', 'var(--toastInk)'], info: ['var(--toast)', 'var(--toastInk)'], error: ['var(--bad)', '#fff'] }[t.kind];
+        return { text: t.text, bg: k[0], ink: k[1], chip: c ? (c.r === 'JK' ? '★' : c.r + c.s) : (t.kind === 'good' ? '✓' : t.kind === 'bad' ? '✕' : '•'), chipBg: c ? '#fff' : 'transparent', chipInk: c ? (c.red ? 'oklch(0.55 0.19 27)' : '#1b1d1c') : 'inherit' };
+      }),
+      showRecon: s.recon > 0, reconSpin: s.recon === 1, reconText: s.recon === 1 ? 'Reconnecting…' : 'Connected. You’re back in your seat.',
+      reconBg: s.recon === 1 ? 'var(--A)' : 'var(--ok)', reconInk: s.recon === 1 ? 'var(--onA)' : '#fff',
+      showDev: this.props.devPanel !== false, devOpen: s.devOpen, devLabel: s.devOpen ? 'PROTOTYPE ▾' : 'PROTOTYPE ▸',
+      toggleDev: () => set('devOpen', !s.devOpen),
+      devActions: [
+        { label: 'Go to home', run: () => this.setState({ screen: 'home', g: null }) },
+        { label: 'Go to lobby (host)', run: () => this.setState({ screen: 'lobby', isHost: true, loggedIn: true, g: null }) },
+        { label: 'Deal a new game', run: () => { this.setState({ loggedIn: true, teams: Object.values(s.teams).every(Boolean) ? s.teams : { me: 'A', maya: 'A', eve: 'A', bob: 'B', priya: 'B', frank: 'B' } }); setTimeout(() => this.startGame(), 0); } },
+        { label: 'Skip to last set', run: () => this.fastForward(), disabled: !g || s.screen !== 'game' },
+        { label: 'Simulate disconnect', run: () => this.disconnect(), disabled: s.screen === 'home' },
+        { label: `Bot speed: ${s.speed === 1 ? 'normal' : 'fast'}`, run: () => set('speed', s.speed === 1 ? 3 : 1) },
+      ].map(a => ({ ...a, op: a.disabled ? 0.4 : 1 })),
+    };
+
+    // home
+    const st = s.stats, myPlayed = st.w + st.l + st.d;
+    const leaders = [['maya', 42, 28, 12, 2], ['dharshen', myPlayed, st.w, st.l, st.d], ['priya', 51, 29, 20, 2], ['bob', 33, 17, 15, 1], ['eve', 28, 13, 14, 1], ['frank', 30, 12, 18, 0], ['leo', 9, 3, 6, 0]]
+      .map(([name, played, w, l, d]) => ({ name, played, wld: `${w} · ${l} · ${d}`, pctN: w / played, pct: Math.round(100 * w / played) + '%', ink: name === 'dharshen' ? 'var(--Atx)' : 'var(--ink)' }))
+      .sort((a, b) => b.pctN - a.pctN).map((p, i) => ({ ...p, rank: i + 1 }));
+    Object.assign(base, {
+      loggedIn: s.loggedIn, notLoggedIn: !s.loggedIn, leaders,
+      login: () => { this.setState({ loggedIn: true }); this.sound('soft'); },
+      logout: () => set('loggedIn', false),
+      createRoom: () => { this.lobbyAuto = false; this.setState({ screen: 'lobby', isHost: true, teams: { ...TEAMS0 } }); },
+      joinCode: s.joinCode, onJoinCode: e => set('joinCode', e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '')),
+      joinDisabled: s.joinCode.length < 4, joinOp: s.joinCode.length < 4 ? 0.45 : 1,
+      join: () => { this.lobbyAuto = false; this.setState({ screen: 'lobby', isHost: false, teams: { ...TEAMS0 } }); },
+    });
+
+    // lobby
+    if (s.screen === 'lobby') {
+      const cols = [['A', 'Team A', 'var(--A)', 'var(--Asoft)', 'var(--Aline)'], ['B', 'Team B', 'var(--B)', 'var(--Bsoft)', 'var(--Bline)'], [null, 'Unassigned', 'var(--faint)', 'transparent', 'var(--line)']];
+      const nA = this.members('A').length, nB = this.members('B').length, un = PLAYERS.filter(p => !s.teams[p.id]);
+      const reason = un.length ? `Assign ${un.map(p => p.name).join(' and ')} to a team.` : nA !== nB ? 'Teams must be the same size.' : PLAYERS.length < 6 ? 'Need at least 6 players.' : '';
+      const mv = (p, t) => () => this.setState(x => ({ teams: { ...x.teams, [p]: x.teams[p] === t ? null : t } }));
+      Object.assign(base, {
+        copyLabel: s.copied ? 'Copied ✓' : 'Copy invite',
+        copy: () => { try { navigator.clipboard?.writeText('https://litt.gg/r/K7QX'); } catch (e) {} this.setState({ copied: true }); setTimeout(() => this.setState({ copied: false }), 1600); },
+        lobbyBodyCols: isMob ? '1fr' : 'minmax(0,1fr) 340px', lobbyGrid: isMob ? '1fr' : 'repeat(3,minmax(0,1fr))',
+        lobbyNote: s.isHost ? 'You’re the host. Put three players on each team.' : 'The host is setting up teams.',
+        isHost: s.isHost, notHost: !s.isHost, randomize: () => this.randomize(),
+        lobbyCols: cols.map(([t, title, color, bg, border]) => {
+          const ps = PLAYERS.filter(p => (s.teams[p.id] || null) === t);
+          return { title, color, bg, border, count: String(ps.length), players: ps.map(p => ({
+            ini: p.ini, name: p.id === 'me' ? 'dharshen (you)' : p.name, host: (s.isHost ? p.id === 'me' : p.id === 'maya') ? '♛ Host' : '', av: av(p.id), canMove: s.isHost,
+            toA: mv(p.id, 'A'), toB: mv(p.id, 'B'),
+            aBg: s.teams[p.id] === 'A' ? 'var(--A)' : 'transparent', aInk: s.teams[p.id] === 'A' ? 'var(--onA)' : 'var(--ink2)',
+            bBg: s.teams[p.id] === 'B' ? 'var(--B)' : 'transparent', bInk: s.teams[p.id] === 'B' ? '#fff' : 'var(--ink2)',
+          })) };
+        }),
+        wrongAwardBg: sel(s.cfg.wrong === 'award').bg, wrongAwardInk: sel(s.cfg.wrong === 'award').ink,
+        wrongNullBg: sel(s.cfg.wrong === 'null').bg, wrongNullInk: sel(s.cfg.wrong === 'null').ink,
+        setWrongAward: () => set('cfg', { ...s.cfg, wrong: 'award' }), setWrongNull: () => set('cfg', { ...s.cfg, wrong: 'null' }),
+        history: s.cfg.history,
+        histDec: () => set('cfg', { ...s.cfg, history: Math.max(1, s.cfg.history - 1) }), histInc: () => set('cfg', { ...s.cfg, history: Math.min(10, s.cfg.history + 1) }),
+        timerOpts: [0, 15, 30, 60, 120].map(v => ({ label: v ? v + 's' : 'Off', ...sel(s.cfg.timer === v), set: () => set('cfg', { ...s.cfg, timer: v }) })),
+        cantStart: !!reason, startReason: s.isHost ? reason : '',
+        startBg: reason ? 'var(--surf2)' : 'var(--A)', startInk: reason ? 'var(--faint)' : 'var(--onA)',
+        start: () => this.startGame(),
+      });
+    }
+
+    // game + over
+    if (g) {
+      const now = s.now, ph = g.phase, myHand = g.hands.me;
+      const scoreA = SETS.filter(x => g.sets[x.id] === 'A').length, scoreB = SETS.filter(x => g.sets[x.id] === 'B').length;
+      const myTurn = ph.kind === 'turn' && g.active === 'me', iChoose = this.canIChoose(g);
+      const left = g.deadline ? Math.max(0, Math.ceil((g.deadline - now) / 1000)) : null;
+      const warn = left !== null && left <= 10;
+      let statusText, statusBg = 'transparent', statusInk = 'var(--ink2)', statusBorder = 'var(--line2)', statusDot = 'var(--faint)';
+      if (ph.kind === 'over') statusText = 'Game over';
+      else if (myTurn) { statusText = 'Your turn'; statusBg = 'var(--A)'; statusInk = 'var(--onA)'; statusBorder = 'var(--A)'; statusDot = 'var(--onA)'; }
+      else if (iChoose) { statusText = 'You pick next'; statusBg = 'var(--A)'; statusInk = 'var(--onA)'; statusBorder = 'var(--A)'; statusDot = 'var(--onA)'; }
+      else if (ph.kind === 'choose') { const t = ph.team; statusText = ph.chooser ? PM[ph.chooser].name + ' is choosing' : 'Team ' + t + ' choosing'; statusInk = t === 'A' ? 'var(--Atx)' : 'var(--Btx)'; statusBorder = t === 'A' ? 'var(--Aline)' : 'var(--Bline)'; statusDot = t === 'A' ? 'var(--A)' : 'var(--B)'; }
+      else { const t = this.team(g.active); statusText = turnOf(g.active); statusInk = t === 'A' ? 'var(--Atx)' : 'var(--Btx)'; statusBorder = t === 'A' ? 'var(--Aline)' : 'var(--Bline)'; statusDot = t === 'A' ? 'var(--A)' : 'var(--B)'; }
+
+      const tile = p => {
+        const out = !g.hands[p].length, act = ph.kind === 'turn' && g.active === p, T = this.team(p);
+        const c = T === 'A' ? 'A' : 'B';
+        const isTarget = myTurn && ui.askTarget === p && ui.tab === 'ask';
+        return {
+          ini: PM[p].ini, name: p === 'me' ? 'You' : PM[p].name,
+          tag: out ? 'Out of cards' : act ? (p === 'me' ? 'Playing' : 'Playing') : isTarget ? 'Asking' : '',
+          tagC: out ? 'var(--faint)' : `var(--${c}tx)`,
+          bg: act ? `var(--${c}soft)` : 'var(--surf)', border: act || isTarget ? `var(--${c})` : 'var(--line)',
+          op: out ? 0.45 : 1, glowC: `var(--${c}line)`, anim: act ? 'litt-pulse 1.8s ease-in-out infinite' : 'none',
+        };
+      };
+      const setTile = x => {
+        const r = g.sets[x.id];
+        const m = {
+          active: { bg: 'var(--surf)', border: 'var(--line)', ink: 'var(--ink)', sub: 'var(--mute)', st: 'Active', stC: 'var(--mute)' },
+          A: { bg: 'var(--Asoft)', border: 'var(--Aline)', ink: 'var(--Atx)', sub: 'var(--Atx)', st: 'Team A', stC: 'var(--Atx)' },
+          B: { bg: 'var(--Bsoft)', border: 'var(--Bline)', ink: 'var(--Btx)', sub: 'var(--Btx)', st: 'Team B', stC: 'var(--Btx)' },
+          null: { bg: 'transparent', border: 'var(--line)', ink: 'var(--faint)', sub: 'var(--faint)', st: 'Null', stC: 'var(--faint)' },
+        }[r];
+        return { name: x.name, range: x.range, ...m };
+      };
+      const groups = SETS.map(x => ({ x, cards: myHand.filter(c => SET_OF[c] === x.id).sort((a, b) => ORDER[a] - ORDER[b]) })).filter(o => o.cards.length);
+      const focusSet = myTurn ? (ui.tab === 'ask' ? ui.askSet : ui.declSet) : null;
+      const fresh = g.lastGot && g.transfers[0] && g.transfers[0].card === g.lastGot && now - (this.gotAt?.[g.lastGot] || now) < 900;
+      if (g.lastGot) { this.gotAt = this.gotAt || {}; if (!this.gotAt[g.lastGot + g.tcount]) this.gotAt[g.lastGot + g.tcount] = now; }
+      const dealFresh = now - g.dealt < 1200;
+
+      // ask
+      const heldSets = SETS.filter(x => g.sets[x.id] === 'active' && myHand.some(c => SET_OF[c] === x.id));
+      const askable = heldSets.filter(x => x.cards.some(c => !myHand.includes(c)));
+      const askSet = askable.find(x => x.id === ui.askSet) ? ui.askSet : null;
+      const askCardsL = askSet ? SETM[askSet].cards.filter(c => !myHand.includes(c)) : [];
+      const askCard = askCardsL.includes(ui.askCard) ? ui.askCard : null;
+      const opps = this.members(thT), mates = this.members(myT);
+      const liveOpps = opps.filter(p => g.hands[p].length);
+      const askTarget = liveOpps.includes(ui.askTarget) ? ui.askTarget : null;
+      const askReady = askCard && askTarget;
+      // declare
+      const declSet = heldSets.find(x => x.id === ui.declSet) ? ui.declSet : null;
+      const assign = {};
+      if (declSet) SETM[declSet].cards.forEach(c => assign[c] = myHand.includes(c) ? 'me' : ui.assign[c] || null);
+      const declReady = declSet && Object.values(assign).every(Boolean);
+      const wrongTxt = s.cfg.wrong === 'award' ? 'A wrong declaration gives the set to the other team.' : 'A wrong declaration nullifies the set.';
+
+      const otherP = ph.kind === 'turn' && !myTurn ? g.active : null;
+      const sheetOpen = isMob && (s.sheet || iChoose);
+      Object.assign(base, {
+        labelA: isMob ? 'A' : 'Team A', labelB: isMob ? 'B' : 'Team B', scoreA, scoreB,
+        hdrH: isMob ? '64px' : '72px', hdrCols: isMob ? 'auto 1fr' : '1fr auto 1fr', scoreSize: isMob ? '30px' : '40px', scoreGap: isMob ? '8px' : '16px',
+        statusText, statusBg, statusInk, statusBorder, statusDot,
+        showTimer: left !== null && ph.kind === 'turn',
+        timerSecs: left, timerPct: (g.deadline ? Math.max(0, Math.min(100, 100 * (g.deadline - now) / (s.cfg.timer * 1000))) : 0) + '%',
+        timerColor: warn ? 'var(--bad)' : (this.team(g.active) === 'B' ? 'var(--B)' : 'var(--A)'),
+        timerInk: warn ? 'var(--bad)' : 'var(--ink)', timerAnim: warn && myTurn ? 'litt-warn 1s ease-in-out infinite' : 'none',
+        toggleMute: () => set('muted', !s.muted), muteLabel: s.muted ? 'Unmute sounds' : 'Mute sounds', muteIcon: s.muted ? '♪̸' : '♪',
+        bodyCols: isDesk ? 'minmax(0,1fr) 340px' : 'minmax(0,1fr)',
+        mainPad: isMob ? '14px 16px 16px' : '22px 32px 26px', mainGap: isMob ? '14px' : '20px',
+        oppLabel: 'Opponents · Team ' + thT, mateLabel: 'Your team · Team ' + myT,
+        oppLabelC: `var(--${thT}tx)`, mateLabelC: `var(--${myT}tx)`, oppAv: `var(--av${thT})`, mateAv: `var(--av${myT})`,
+        opps: opps.map(tile), mates: mates.map(tile),
+        tilePad: isMob ? '8px 9px' : '11px 13px', avSize: isMob ? '28px' : '34px',
+        setsMeta: `${SETS.filter(x => g.sets[x.id] === 'active').length} active · ${SETS.filter(x => g.sets[x.id] !== 'active').length} resolved`,
+        sets: SETS.map(setTile), setCols: isMob ? 'repeat(3,minmax(0,1fr))' : (s.width >= 1340 ? 'repeat(9,minmax(0,1fr))' : 'repeat(auto-fill,minmax(92px,1fr))'), setGap: isMob ? '6px' : '8px', setH: isMob ? '54px' : '72px',
+        handEmpty: !myHand.length,
+        hand: groups.map(o => ({
+          name: o.x.full, labelC: focusSet === o.x.id ? 'var(--ink)' : 'var(--mute)', lift: focusSet === o.x.id ? 'translateY(-8px)' : 'none',
+          cards: o.cards.map((c, i) => { const v = cv(c); return { r: v.r, s: v.s, color: col(c), anim: dealFresh ? `litt-in .5s ${i * 0.04}s cubic-bezier(.2,.8,.2,1) both` : (c === g.lastGot && g.transfers[0]?.card === c && g.transfers[0]?.to === 'me' ? 'litt-in .55s cubic-bezier(.2,.8,.2,1)' : 'none') }; }),
+        })),
+        cardW: isMob ? '44px' : '64px', cardH: isMob ? '62px' : '90px', cardOverlap: isMob ? '-14px' : '-20px', cardOverlapPos: isMob ? '14px' : '20px',
+        rankSize: isMob ? '13px' : '16px', suitSize: isMob ? '18px' : '26px', groupGap: isMob ? '10px 4px' : '16px 10px',
+        transfers: g.transfers.slice(0, s.cfg.history).map((t, i) => { const cur = i === 0 && s.spot && s.spot.ok && s.spot.n === t.n; return { n: t.n, from: S(t.from), to: S(t.to), card: cv(t.card).label, color: col(t.card), op: 1 - i * 0.15, rowBg: cur ? 'color-mix(in oklch, var(--ok) 14%, transparent)' : 'transparent', curTag: cur ? 'Now' : '' }; }),
+        noTransfers: !g.transfers.length, histLabel: 'last ' + s.cfg.history,
+        ...(() => {
+          const sp = s.spot;
+          if (!sp) return { showSpot: false };
+          const age = now - sp.at, rev = age >= 700, vis = age >= 30 && age < 3150;
+          const acc = !rev ? 'var(--mute)' : sp.ok ? 'var(--ok)' : 'var(--bad)';
+          const v = cv(sp.card), tc = p => this.team(p) === 'A' ? 'var(--A)' : 'var(--B)';
+          return {
+            showSpot: true, spotOp: vis ? 1 : 0, spotTf: vis ? 'none' : 'translateY(12px) scale(.96)',
+            spotAcc: acc, spotBorder: rev ? acc : 'var(--line2)',
+            spotKicker: rev ? (sp.ok ? 'Transfer #' + sp.n : 'Failed ask') : 'Asking…',
+            spotFromName: S(sp.from), spotFromIni: PM[sp.from].ini, spotFromAv: av(sp.from), spotFromRing: tc(sp.from),
+            spotToName: S(sp.to), spotToIni: PM[sp.to].ini, spotToAv: av(sp.to), spotToRing: tc(sp.to),
+            spotR: v.r, spotS: v.s, spotColor: col(sp.card), spotCardOp: rev && !sp.ok ? 0.5 : 1,
+            spotCardRing: rev ? `0 0 0 3px ${acc}, var(--cardSh)` : 'var(--cardSh)',
+            spotCardTf: rev && sp.ok ? 'translateY(-6px) rotate(-3deg)' : rev ? 'rotate(3deg)' : 'none',
+            spotVerb: sp.from === 'me' ? 'ask' : 'asks',
+            spotResultVis: rev ? 1 : 0, spotIcon: sp.ok ? '✓' : '✕',
+            spotResult: sp.ok ? `${S(sp.to)} ${sp.to === 'me' ? 'had' : 'had'} it — ${v.label} goes to ${O(sp.from)}` : `${S(sp.to)} ${sp.to === 'me' ? 'don’t' : 'doesn’t'} have it — ${turnOf(sp.to)}`,
+            spotPad: isMob ? '18px 16px' : '26px 30px', spotGap: isMob ? '12px' : '22px',
+            spotCardW: isMob ? '64px' : '96px', spotCardH: isMob ? '90px' : '134px', spotRank: isMob ? '18px' : '24px', spotSuit: isMob ? '28px' : '42px',
+            spotAvSize: isMob ? '42px' : '56px', spotArrowW: isMob ? '34px' : '64px',
+          };
+        })(),
+        // panel
+        pOther: !!otherP, pWaitChoose: ph.kind === 'choose' && !iChoose, pChoose: iChoose, pMyTurn: myTurn,
+        otherIni: otherP ? PM[otherP].ini : '', otherAv: otherP ? av(otherP) : '', otherTitle: otherP ? turnOf(otherP) : '',
+        otherRing: otherP ? (this.team(otherP) === 'A' ? 'var(--A)' : 'var(--B)') : 'transparent', otherGlow: otherP ? (this.team(otherP) === 'A' ? 'var(--Aline)' : 'var(--Bline)') : 'transparent',
+        otherSub: otherP ? (this.team(otherP) === myT ? 'Your teammate is asking. Watch the transfers.' : 'Watch who asks for what — every ask shows a set they hold.') : '',
+        waitText: ph.kind === 'choose' ? `Waiting for ${ph.chooser ? PM[ph.chooser].name : 'Team ' + ph.team} to pick who plays next` : '',
+        waitColor: ph.kind === 'choose' && ph.team === 'B' ? 'var(--B)' : 'var(--A)',
+        chooseKicker: ph.kind === 'choose' ? (ph.chooser === 'me' ? 'You declared correctly' : 'Your team gets the turn') : '',
+        chooseList: iChoose ? ph.eligible.map(p => ({ name: p === 'me' ? 'You' : PM[p].name, ini: PM[p].ini, av: av(p), pick: () => this.choose(p) })) : [],
+        tabAsk: () => setUi({ tab: 'ask' }), tabDecl: () => setUi({ tab: 'declare' }),
+        tabAskBg: sel(ui.tab === 'ask').bg, tabAskInk: sel(ui.tab === 'ask').ink, tabDeclBg: sel(ui.tab === 'declare').bg, tabDeclInk: sel(ui.tab === 'declare').ink,
+        isAskTab: ui.tab === 'ask', isDeclTab: ui.tab === 'declare',
+        askSets: askable.map(x => ({ name: x.name, ...sel(askSet === x.id), pick: () => setUi({ askSet: x.id, askCard: null }) })),
+        askHasSet: !!askSet && liveOpps.length > 0, askNoTargets: myTurn && !liveOpps.length,
+        askCards: askCardsL.map(c => { const v = cv(c); return { r: v.r, s: v.s, label: v.label, color: col(c), outline: askCard === c ? '2px solid var(--A)' : 'none', lift: askCard === c ? 'translateY(-4px)' : 'none', pick: () => setUi({ askCard: c }) }; }),
+        askTargets: opps.map(p => {
+          const out = !g.hands[p].length, on = askTarget === p;
+          return { name: PM[p].name, tag: out ? 'Out of cards' : '', disabled: out, pick: () => setUi({ askTarget: p }),
+            bg: on ? 'var(--Bsoft)' : 'transparent', border: on ? 'var(--B)' : out ? 'var(--line)' : 'var(--line2)', bStyle: out ? 'dashed' : 'solid', ink: out ? 'var(--faint)' : 'var(--ink)',
+            radio: on ? '5px solid var(--B)' : `1.5px solid ${out ? 'var(--line)' : 'var(--mute)'}` };
+        }),
+        askDisabled: !askReady, askBtnBg: askReady ? 'var(--A)' : 'var(--surf2)', askBtnInk: askReady ? 'var(--onA)' : 'var(--faint)',
+        askBtnLabel: askReady ? `Ask ${PM[askTarget].name} for ${cv(askCard).label}` : !askSet ? 'Pick a set' : !askCard ? 'Pick a card' : 'Pick an opponent',
+        doAsk: () => { if (askReady) { this.setState({ sheet: false }); this.ask('me', askTarget, askCard); } },
+        declSets: heldSets.map(x => ({ name: x.name, ...sel(declSet === x.id), pick: () => setUi({ declSet: x.id, assign: {} }) })),
+        declHasSet: !!declSet, declNoSets: myTurn && !heldSets.length,
+        declRows: declSet ? SETM[declSet].cards.map(c => { const v = cv(c), mine = myHand.includes(c); return { r: v.r, s: v.s, color: col(c),
+          opts: mates.map(p => { const on = assign[c] === p; return { name: p === 'me' ? 'You' : PM[p].name, locked: mine, bg: on ? 'var(--btn)' : 'transparent', ink: on ? 'var(--btnInk)' : mine ? 'var(--faint)' : 'var(--ink2)', pick: () => setUi({ assign: { ...ui.assign, [c]: p } }) }; }) }; }) : [],
+        declDisabled: !declReady, declBtnBg: declReady ? 'var(--A)' : 'var(--surf2)', declBtnInk: declReady ? 'var(--onA)' : 'var(--faint)',
+        declBtnLabel: !declSet ? 'Pick a set' : declReady ? 'Review declaration' : `Assign ${Object.values(assign).filter(v => !v).length} more`,
+        openReview: () => declReady && setUi({ review: true }),
+        showReview: myTurn && ui.review && declReady,
+        reviewTitle: declSet ? SETM[declSet].full : '',
+        reviewGroups: declSet ? mates.map(p => ({ name: p === 'me' ? 'You' : PM[p].name, cards: SETM[declSet].cards.filter(c => assign[c] === p).map(c => ({ label: cv(c).label, color: col(c) })) })).filter(r => r.cards.length) : [],
+        reviewWarn: 'This cannot be undone. ' + wrongTxt,
+        closeReview: () => setUi({ review: false }),
+        confirmDeclare: () => { this.setState({ sheet: false }); this.declare('me', declSet, assign); },
+        // layout of panel
+        showScrim: sheetOpen, closeSheet: () => set('sheet', false),
+        openAsk: () => this.setState({ sheet: true, ui: { ...ui, tab: 'ask' } }), openDecl: () => this.setState({ sheet: true, ui: { ...ui, tab: 'declare' } }),
+        asideDisplay: isDesk || sheetOpen ? 'flex' : 'none', asidePos: isDesk ? 'relative' : 'absolute',
+        asideMaxH: isDesk ? 'none' : '86%', asideR: isDesk ? '0' : '22px 22px 0 0', asideBorderL: isDesk ? '1px solid var(--line)' : '0',
+        asideBg: isDesk ? 'var(--bg2)' : 'var(--sheet)', asideShadow: isDesk ? 'none' : '0 -20px 60px rgba(0,0,0,.35)', asideAnim: isDesk ? 'none' : 'litt-sheet .3s cubic-bezier(.2,.8,.2,1)',
+        panelPad: isDesk ? '22px 24px' : '8px 18px 22px',
+        mobIdle: !myTurn && !iChoose, mobIdleText: ph.kind === 'choose' ? base.waitText || 'Waiting…' : ph.kind === 'over' ? 'Game over' : (otherP ? turnOf(otherP) + ' — watch the table' : ''),
+      });
+      base.mobIdleText = ph.kind === 'choose' ? (ph.chooser ? PM[ph.chooser].name : 'Team ' + ph.team) + ' is picking who plays next' : base.mobIdleText;
+
+      // over
+      const myScore = myT === 'A' ? scoreA : scoreB, thScore = myT === 'A' ? scoreB : scoreA;
+      const win = scoreA === scoreB ? null : scoreA > scoreB ? 'A' : 'B';
+      const nulls = SETS.filter(x => g.sets[x.id] === 'null').length;
+      const mins = Math.max(1, Math.round(((g.ended || now) - g.started) / 60000));
+      Object.assign(base, {
+        overCols: isMob ? '1fr' : 'minmax(0,1fr) minmax(0,1fr)',
+        overKicker: win ? (win === myT ? 'You won' : 'You lost') : 'Final',
+        overL1: win ? 'Team ' + win : 'It’s a', overL2: win ? 'wins.' : 'draw.',
+        overTitleSize: isMob ? '64px' : '96px', overNumSize: isMob ? '84px' : '120px',
+        overGlow: win === 'B' ? 'var(--Bsoft)' : win === 'A' ? 'var(--Asoft)' : 'var(--surf2)',
+        overMeta: `${nulls ? nulls + ' set' + (nulls > 1 ? 's' : '') + ' nullified · ' : ''}${g.tcount} transfers · ${mins} min`,
+        finalSets: SETS.map(x => { const r = g.sets[x.id], b = g.setBy[x.id];
+          const m = { A: ['var(--Asoft)', 'var(--Atx)', 'Team A'], B: ['var(--Bsoft)', 'var(--Btx)', 'Team B'], null: ['var(--surf2)', 'var(--mute)', 'Null'], active: ['transparent', 'var(--faint)', '—'] }[r];
+          return { name: x.full, by: b ? (b.ok ? 'Declared by ' : 'Wrong · ') + S(b.by) : '', bg: m[0], ink: m[1], st: m[2] }; }),
+        rematch: () => this.startGame(),
+      });
+      void myScore; void thScore; void fresh;
+    }
+    return base;
+  }
+}
+</script>
+</body>
+</html>
