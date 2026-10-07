@@ -147,3 +147,9 @@ vite.config.ts.timestamp-*
 
 # Turbo Repo
 .turbo
+
+# Litt
+.wrangler/
+.dev.vars
+!.env.example
+*.db
