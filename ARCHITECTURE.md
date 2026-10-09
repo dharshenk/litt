@@ -257,10 +257,19 @@ The Node adapter enables WAL mode and applies the shared idempotent schema on op
 
 ### 6.6 Local and production serving
 
-- `npm run dev` starts the Node server on port `8787` and Vite on port `5173`; Vite proxies `/api`, `/auth` and `/ws` to Node. With no Discord client id, the server uses local dev accounts.
+- `npm run dev` starts the Node server on port `8787` and Vite on port `5173`; Vite proxies `/api`, `/auth` and `/ws` to Node, keeping the browser's `Host` header. Local dev accounts are used only when `NODE_ENV=development`.
 - Dev identities are selected per tab with the home-page dev login. Requests append `devUser=<name>` only in Vite development builds.
-- `GET /api/dev/rooms/:code/state` is registered only when `LITT_DEV_TOOLS=1` and `NODE_ENV` is not `production`. It returns full engine state for E2E move selection and is absent from production.
+- `GET /api/dev/rooms/:code/state` is registered only when `LITT_DEV_TOOLS=1` and `NODE_ENV=development`. It returns full engine state for E2E move selection and is absent from production.
 - `npm run build` creates the web bundle. `npm start` in production requires Discord credentials and serves `packages/web/dist`, falling back to `index.html` for `/` and `/r/:code`.
+
+### 6.7 Hardening
+
+- Deals, first players, timeout targets and room codes use `crypto.getRandomValues` (`server/src/security.ts`), never `Math.random`, whose state can be recovered from its outputs.
+- WebSocket handshakes and non-GET HTTP requests with an `Origin` header must come from `PUBLIC_BASE_URL`'s origin or the requested `Host`.
+- Limits (in-memory, per process): 10 room creations per user per 10 minutes and 5,000 open rooms; 16 seats per lobby; 30 WebSocket handshakes per user per minute and 8 open sockets per user; bursts of 40 messages per socket, refilling at 10/s (exceeding it closes the socket with 1008).
+- The server pings every socket every 30 seconds and terminates sockets that miss a pong.
+- Every response carries `nosniff`, `X-Frame-Options: DENY`, `Referrer-Policy: same-origin` (room links carry the join code) and, over HTTPS, HSTS. The built SPA is served with a strict CSP (scripts from self only; Google Fonts and provider avatars allowed). Mock mode (`?mock=1`) is compiled out of production builds.
+- Production requires `SESSION_SECRET` of at least 32 characters and warns when `PUBLIC_BASE_URL` is not `https://`.
 
 ---
 

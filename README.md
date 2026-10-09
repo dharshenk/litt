@@ -22,7 +22,7 @@ Optional environment settings can be copied from `.env.example` to `.env`. The s
 3. Under OAuth2, register `http://localhost:8787/auth/callback` and the production callback URL.
 4. Set `DISCORD_CLIENT_ID`, `DISCORD_CLIENT_SECRET`, and a high-entropy `SESSION_SECRET`. Set `PUBLIC_BASE_URL` to the externally visible origin and `DATABASE_PATH` to the SQLite database path.
 
-`npm run dev` sets `NODE_ENV=development` and uses temporary, per-tab dev accounts even when Discord credentials are present in `.env`. Without an explicit development mode, an unset `DISCORD_CLIENT_ID` also selects dev accounts. Production (`NODE_ENV=production`) requires Discord authentication and never accepts dev identities.
+`npm run dev` sets `NODE_ENV=development` and uses temporary, per-tab dev accounts even when Discord credentials are present in `.env`. Dev accounts let anyone sign in under any name, so they are used only when `NODE_ENV=development`; in any other mode the server refuses to start without Discord or Google OAuth credentials.
 
 ## Commands
 
@@ -37,7 +37,9 @@ Optional environment settings can be copied from `.env.example` to `.env`. The s
 | `npx playwright test` | Run the six-player browser scenarios and capture visual states. |
 | `npm audit` | Check dependency advisories. |
 
-Production startup requires a prior `npm run build` and `DISCORD_CLIENT_ID`, `DISCORD_CLIENT_SECRET`, `SESSION_SECRET`, and `NODE_ENV=production`. `PORT`, `PUBLIC_BASE_URL`, and `DATABASE_PATH` are optional; defaults are documented in `.env.example`.
+Production startup requires a prior `npm run build`, `NODE_ENV=production`, a Discord or Google client id/secret pair, and a `SESSION_SECRET` of at least 32 characters (`openssl rand -hex 32`). `PORT`, `PUBLIC_BASE_URL`, and `DATABASE_PATH` are optional; defaults are documented in `.env.example`.
+
+On the internet, serve Litt over HTTPS: run it behind a TLS-terminating reverse proxy (for example Caddy, nginx, or Cloudflare Tunnel) and set `PUBLIC_BASE_URL` to the `https://` origin. Session cookies are marked `Secure` and HSTS is sent only when `PUBLIC_BASE_URL` is `https://`, and the server logs a warning at startup when it is not. The proxy must forward WebSocket upgrades and preserve the `Host` header (or `PUBLIC_BASE_URL` must match the public origin), since cross-origin WebSocket handshakes and POSTs are rejected.
 
 ## Project Layout
 

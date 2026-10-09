@@ -1,6 +1,7 @@
 import type { Action, GameState } from "@litt/engine";
 import type { ClientMessage } from "@litt/protocol";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { MAX_SEATS } from "../src/room.js";
 import { roomHarness, users } from "./helpers.js";
 
 describe("Room", () => {
@@ -192,6 +193,20 @@ describe("Room", () => {
     expect(sent).toEqual([{ connId: "outsider", msg: { t: "error", code: "ROOM_IN_PROGRESS", message: expect.any(String) } }]);
     expect(close).toHaveBeenCalledWith("outsider", "room in progress");
     expect(room.connectedCount()).toBe(6);
+  });
+
+  it("caps lobby seats but still lets seated players reconnect", () => {
+    const { room, sent, close } = roomHarness();
+    const guests = Array.from({ length: MAX_SEATS }, (_, index) => ({ id: `g${index}`, displayName: `Guest${index}`, avatarUrl: null }));
+    guests.forEach((guest) => room.join(guest.id, guest));
+    sent.length = 0;
+    room.join("extra", { id: "extra", displayName: "Extra", avatarUrl: null });
+    expect(sent).toEqual([{ connId: "extra", msg: { t: "error", code: "ROOM_FULL", message: expect.any(String) } }]);
+    expect(close).toHaveBeenCalledWith("extra", "room full");
+    expect(room.snapshot().players).toHaveLength(MAX_SEATS);
+    room.join("g0-new-tab", guests[0]!);
+    expect(close).toHaveBeenCalledWith("g0", "replaced");
+    expect(room.connectedCount()).toBe(MAX_SEATS);
   });
 
   it("records each finished game once, supports final-view reconnects and rematches", () => {

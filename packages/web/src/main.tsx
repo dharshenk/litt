@@ -6,7 +6,8 @@ import "./styles/global.css";
 
 async function boot() {
   let DevPanel: ComponentType | undefined;
-  if (mockRequested()) {
+  // Production builds drop this branch (and the fake server chunk) unless built with VITE_MOCK=1.
+  if ((import.meta.env.DEV || import.meta.env.VITE_MOCK === "1") && mockRequested()) {
     // Loaded on demand so the fake server never ships in the main bundle.
     const mock = await import("./mock/index.js");
     DevPanel = mock.installMock();

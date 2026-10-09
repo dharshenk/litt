@@ -298,6 +298,13 @@ describe("RoomPage: connection state", () => {
     expect(screen.queryByRole("button", { name: "Use this tab" })).toBeNull();
   });
 
+  it("explains a full room without offering a retry", async () => {
+    const conn = await renderRoom();
+    status(conn, "closed", 0, "ROOM_FULL");
+    expect(screen.getByText("This room is full")).toBeTruthy();
+    expect(screen.queryByRole("button", { name: "Use this tab" })).toBeNull();
+  });
+
   it("explains an unknown room", async () => {
     const conn = await renderRoom();
     status(conn, "closed", 0, "ROOM_NOT_FOUND");

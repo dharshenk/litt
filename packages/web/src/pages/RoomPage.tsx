@@ -256,6 +256,10 @@ function Closed({ code, reason, onRetry }: { code: string; reason: string | null
     title = "This game has already started";
     note = "Only players with a seat can rejoin. Ask for an invite to the next game.";
     retry = false;
+  } else if (reason === "ROOM_FULL") {
+    title = "This room is full";
+    note = "The lobby has no free seats. Ask the host to make room, or start a new room.";
+    retry = false;
   } else if (reason === "KICKED") {
     title = "You were removed from this room";
     note = "The host removed you from the lobby.";

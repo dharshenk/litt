@@ -35,7 +35,7 @@ export interface RoomSocketOptions {
 }
 
 /** Server errors after which retrying can't help. */
-const TERMINAL_ERRORS = new Set(["ROOM_IN_PROGRESS", "ROOM_NOT_FOUND", "KICKED"]);
+const TERMINAL_ERRORS = new Set(["ROOM_IN_PROGRESS", "ROOM_NOT_FOUND", "ROOM_FULL", "KICKED"]);
 
 /** Framework-free WebSocket wrapper: JSON in/out, exponential backoff reconnect, keep-alive pings. */
 export class RoomSocket implements RoomConnection {

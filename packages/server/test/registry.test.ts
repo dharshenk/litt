@@ -28,6 +28,20 @@ describe("RoomRegistry", () => {
     expect(registry.get("NOPE")).toBeUndefined();
   });
 
+  it("refuses new rooms once the open-room limit is reached", () => {
+    const engine = fakeEngine();
+    const registry = new RoomRegistry({
+      setTimer, maxRooms: 2,
+      factory: (code, hostId, onConnectionsChanged) => new Room({
+        code, hostId, onConnectionsChanged, engine, rng: () => 0,
+        now: Date.now, setTimer, send: () => {}, closeConnection: () => {}, onGameFinished: () => {},
+      }),
+    });
+    registry.create("p0");
+    registry.create("p1");
+    expect(() => registry.create("p2")).toThrow("No room codes available");
+  });
+
   it("disposes never-joined rooms after exactly 30 minutes and frees the code", () => {
     const { registry } = registryHarness();
     const code = registry.create("p0");

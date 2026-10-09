@@ -1,14 +1,18 @@
 import type { Rng } from "@litt/engine";
 import type { Room, RoomDeps } from "./room.js";
+import { secureRandom } from "./security.js";
 
 const ALPHABET = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
 const CODE_COUNT = ALPHABET.length ** 4;
 const IDLE_MS = 30 * 60 * 1000;
+/** Bounds memory and keeps codes sparse enough that guessing one is impractical. */
+const MAX_ROOMS = 5_000;
 
 export interface RoomRegistryOptions {
   factory(code: string, hostId: string, onConnectionsChanged: () => void): Room;
   setTimer: RoomDeps["setTimer"];
   rng?: Rng;
+  maxRooms?: number;
 }
 
 interface Entry {
@@ -23,8 +27,8 @@ export class RoomRegistry {
   constructor(private readonly options: RoomRegistryOptions) {}
 
   create(hostId: string): string {
-    if (this.rooms.size === CODE_COUNT) throw new Error("No room codes available");
-    let value = Math.floor((this.options.rng ?? Math.random)() * CODE_COUNT);
+    if (this.rooms.size >= Math.min(CODE_COUNT, this.options.maxRooms ?? MAX_ROOMS)) throw new Error("No room codes available");
+    let value = Math.floor((this.options.rng ?? secureRandom)() * CODE_COUNT);
     let code = this.codeFor(value);
     while (this.rooms.has(code)) {
       value = (value + 1) % CODE_COUNT;

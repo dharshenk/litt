@@ -4,6 +4,7 @@ import type { Accounts, AccountsOptions, FinishedGameRecord, SqlDb } from "./typ
 const OAUTH_COOKIE = "litt_oauth";
 const SESSION_COOKIE = "litt_session";
 const SESSION_SECONDS = 30 * 24 * 60 * 60;
+const PROVIDER_TIMEOUT_MS = 10_000;
 
 type Provider = "discord" | "google";
 
@@ -258,6 +259,7 @@ export function createAccounts(options: AccountsOptions): Accounts {
       try {
         const tokenResponse = await fetcher(config.tokenUrl, {
           method: "POST",
+          signal: AbortSignal.timeout(PROVIDER_TIMEOUT_MS),
           headers: { "content-type": "application/x-www-form-urlencoded" },
           body: new URLSearchParams({
             grant_type: "authorization_code",
@@ -274,6 +276,7 @@ export function createAccounts(options: AccountsOptions): Accounts {
         }
 
         const profileResponse = await fetcher(config.profileUrl, {
+          signal: AbortSignal.timeout(PROVIDER_TIMEOUT_MS),
           headers: { authorization: `Bearer ${tokenBody.access_token}` },
         });
         if (!profileResponse.ok) throw new Error(`${provider} profile request failed`);

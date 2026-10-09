@@ -9,9 +9,10 @@ export default defineConfig({
     host: "127.0.0.1",
     port: 5173,
     strictPort: true,
+    // Keep the browser-facing Host header: the server rejects state-changing requests whose Origin doesn't match it.
     proxy: {
-      "/api": `http://${SERVER}`,
-      "/auth": `http://${SERVER}`,
+      "/api": { target: `http://${SERVER}`, changeOrigin: false },
+      "/auth": { target: `http://${SERVER}`, changeOrigin: false },
       "/ws": { target: `ws://${SERVER}`, ws: true },
     },
   },

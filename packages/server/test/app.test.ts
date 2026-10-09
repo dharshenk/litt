@@ -72,6 +72,45 @@ describe("createApp", () => {
     expect(accounts.getSessionUser.mock.calls[0]![0].url).toContain("devUser=Alice");
   });
 
+  it("rejects state-changing requests from other origins", async () => {
+    const { app, accounts } = appHarness();
+    accounts.getSessionUser.mockResolvedValue(users[0]!);
+    const post = (path: string, origin: string) => app.request(path, { method: "POST", headers: { origin } });
+    for (const path of ["/api/rooms", "/auth/logout"]) {
+      const response = await post(path, "https://evil.example");
+      expect(response.status).toBe(403);
+      expect(await response.json()).toEqual({ error: "Cross-origin request rejected" });
+    }
+    expect(accounts.handleLogout).not.toHaveBeenCalled();
+    expect((await post("/api/rooms", "http://localhost")).status).toBe(200);
+    expect((await app.request("/api/me", { headers: { origin: "https://evil.example" } })).status).toBe(200);
+
+    const behindProxy = createApp({ accounts, registry: appHarness().registry, publicOrigin: "https://litt.example" });
+    expect((await behindProxy.request("/api/rooms", { method: "POST", headers: { origin: "https://litt.example" } })).status).toBe(200);
+  });
+
+  it("rate-limits room creation per user and reports a full server", async () => {
+    const { app, accounts } = appHarness();
+    accounts.getSessionUser.mockResolvedValue(users[0]!);
+    const create = () => app.request("/api/rooms", { method: "POST" });
+    for (let index = 0; index < 10; index++) expect((await create()).status).toBe(200);
+    const limited = await create();
+    expect(limited.status).toBe(429);
+    expect(await limited.json()).toEqual({ error: "Too many rooms created; try again later" });
+    accounts.getSessionUser.mockResolvedValue(users[1]!);
+    expect((await create()).status).toBe(200);
+    accounts.getSessionUser.mockResolvedValue(users[0]!);
+    vi.advanceTimersByTime(10 * 60 * 1000);
+    expect((await create()).status).toBe(200);
+
+    const full = new RoomRegistry({ factory: () => roomHarness().room, setTimer, maxRooms: 1 });
+    const fullApp = createApp({ accounts, registry: full });
+    expect((await fullApp.request("/api/rooms", { method: "POST" })).status).toBe(200);
+    const unavailable = await fullApp.request("/api/rooms", { method: "POST" });
+    expect(unavailable.status).toBe(503);
+    expect(await unavailable.json()).toEqual({ error: "The server has too many open rooms; try again later" });
+  });
+
   it("serves public leaderboard and individual stats with 404 for unknown users", async () => {
     const { app, accounts, stats } = appHarness();
     expect(await (await app.request("/api/stats")).json()).toEqual([stats]);

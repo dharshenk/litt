@@ -225,7 +225,7 @@ describe("RoomSocket: closing for good", () => {
     expect(FakeWebSocket.instances).toHaveLength(1);
   });
 
-  it.each(["ROOM_IN_PROGRESS", "ROOM_NOT_FOUND"] as const)("stops retrying after %s and reports why", (code) => {
+  it.each(["ROOM_IN_PROGRESS", "ROOM_NOT_FOUND", "ROOM_FULL", "KICKED"] as const)("stops retrying after %s and reports why", (code) => {
     const { statuses, latest } = setup();
     latest().open();
     latest().message({ t: "error", code, message: "nope" });

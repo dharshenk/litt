@@ -95,6 +95,7 @@ export type ServerErrorCode =
   | "NOT_HOST"
   | "ROOM_NOT_FOUND"
   | "ROOM_IN_PROGRESS"
+  | "ROOM_FULL"
   | "KICKED"
   | "WRONG_STATUS"
   | "CANNOT_START"

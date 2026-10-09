@@ -16,6 +16,9 @@ export interface RoomDeps {
   onConnectionsChanged?(): void;
 }
 
+/** Anyone with the code can join a lobby, and every join is broadcast to every seat, so the lobby is bounded. */
+export const MAX_SEATS = 16;
+
 interface Seat {
   player: RoomPlayer;
   connId: string | null;
@@ -56,6 +59,11 @@ export class Room {
     if (!seat && this.status !== "lobby") {
       this.error(connId, "ROOM_IN_PROGRESS", "Only seated players may join this game");
       this.deps.closeConnection(connId, "room in progress");
+      return;
+    }
+    if (!seat && this.seats.size >= MAX_SEATS) {
+      this.error(connId, "ROOM_FULL", `This room is full (${MAX_SEATS} players)`);
+      this.deps.closeConnection(connId, "room full");
       return;
     }
     if (seat?.connId && seat.connId !== connId) {
