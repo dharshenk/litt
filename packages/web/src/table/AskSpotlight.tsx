@@ -26,6 +26,9 @@ interface Props {
 
 type Stage = "enter" | "asking" | "result" | "leaving";
 
+/** When the outcome is revealed, after the "Asking…" beat. */
+export const REVEAL_MS = 1200;
+
 /** Timeline: "Asking…" until 1.2s, then the result; fades out at 5.7s. */
 export function AskSpotlight({ spot, namer, teamOf, transferSeq, onDone }: Props) {
   const [stage, setStage] = useState<Stage>("enter");
@@ -39,7 +42,7 @@ export function AskSpotlight({ spot, namer, teamOf, transferSeq, onDone }: Props
     const id = spot.id;
     const timers = [
       setTimeout(() => setStage("asking"), 30),
-      setTimeout(() => setStage("result"), 1200),
+      setTimeout(() => setStage("result"), REVEAL_MS),
       setTimeout(() => setStage("leaving"), 5650),
       setTimeout(() => done.current(id), 6100),
     ];

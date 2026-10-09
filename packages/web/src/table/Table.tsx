@@ -20,6 +20,7 @@ import { Hand } from "./Hand.js";
 import { ActionPanel, Transactions } from "./Panel.js";
 import { ReviewModal } from "./ReviewModal.js";
 import { AskSpotlight, type Spot } from "./AskSpotlight.js";
+import { PassFlight } from "./PassFlight.js";
 import styles from "./Table.module.css";
 
 export type TableTab = "ask" | "declare";
@@ -252,6 +253,7 @@ export function Table({ room, view, deadline, namer, send, spot, onSpotDone, uiK
       {setsOpen && <SetsModal view={view} onClose={() => setSetsOpen(false)} />}
 
       <AskSpotlight spot={spot} namer={namer} teamOf={teamOf} transferSeq={spotSeq} onDone={onSpotDone} />
+      <PassFlight spot={spot} teamOf={teamOf} />
       <ToastViewport placement="game" />
       {myTurn && ui.review && sel.declSet && (
         <ReviewModal

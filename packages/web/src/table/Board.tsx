@@ -43,6 +43,7 @@ export function PlayerRow({ label, team, view, room, namer, mobile, askingTarget
             <li
               key={p.id}
               className={styles.tile}
+              data-player={p.id}
               data-team={p.team}
               data-active={active || undefined}
               data-asking={asking || undefined}

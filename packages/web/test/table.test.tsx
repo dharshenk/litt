@@ -1,13 +1,13 @@
 import { act, fireEvent, render, screen, within } from "@testing-library/react";
 import type { ComponentProps } from "react";
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { Card, PlayerView, SetId } from "@litt/engine";
 import { getRecentAsks } from "@litt/engine";
 import type { ClientMessage } from "@litt/protocol";
 import { ToastProvider } from "../src/components/Toasts.js";
 import { cardLabel, setInfo } from "../src/lib/cards.js";
 import { Table } from "../src/table/Table.js";
-import { AskSpotlight, type Spot } from "../src/table/AskSpotlight.js";
+import { AskSpotlight, REVEAL_MS, type Spot } from "../src/table/AskSpotlight.js";
 import { MockServer } from "../src/mock/server.js";
 import { makeRoom, makeView, namerFor, type ViewOptions } from "./fixtures.js";
 import { setMobile } from "./viewport.js";
@@ -612,5 +612,49 @@ describe("AskSpotlight", () => {
   it("renders nothing without a spot", () => {
     render(<AskSpotlight spot={null} namer={namer} teamOf={teamOf} transferSeq={null} onDone={() => {}} />);
     expect(screen.queryByRole("status")).toBeNull();
+  });
+});
+
+describe("PassFlight", () => {
+  // jsdom has no Web Animations; record which elements get animated.
+  const animate = vi.fn(() => ({ cancel: vi.fn() }) as unknown as Animation);
+  const animated = () => animate.mock.contexts as Element[];
+  const tile = (id: string) => document.querySelector(`[data-player="${id}"]`);
+
+  beforeEach(() => {
+    vi.useFakeTimers();
+    animate.mockClear();
+    Element.prototype.animate = animate;
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+    delete (Element.prototype as Partial<Element>).animate;
+  });
+
+  it("hands the card from target to asker when the spotlight reveals a hit", () => {
+    renderTable({}, { spot: { id: 1, asker: "maya", target: "bob", card: "2C", ok: true } });
+    act(() => void vi.advanceTimersByTime(REVEAL_MS - 1));
+    expect(animate).not.toHaveBeenCalled();
+    act(() => void vi.advanceTimersByTime(1));
+    expect(animated()).toContain(tile("bob"));
+    expect(animated()).toContain(tile("maya"));
+  });
+
+  it("bounces a missed ask off the target", () => {
+    renderTable({}, { spot: { id: 1, asker: "maya", target: "bob", card: "3C", ok: false } });
+    act(() => void vi.advanceTimersByTime(REVEAL_MS));
+    expect(animated()).toContain(tile("bob"));
+    expect(animated()).toContain(tile("maya"));
+  });
+
+  it("stays still for players who prefer reduced motion", () => {
+    const matchMedia = window.matchMedia;
+    vi.spyOn(window, "matchMedia").mockImplementation((query) =>
+      query.includes("reduced-motion") ? { ...matchMedia(query), matches: true } : matchMedia(query),
+    );
+    renderTable({}, { spot: { id: 1, asker: "maya", target: "bob", card: "2C", ok: true } });
+    act(() => void vi.advanceTimersByTime(REVEAL_MS));
+    expect(animate).not.toHaveBeenCalled();
   });
 });

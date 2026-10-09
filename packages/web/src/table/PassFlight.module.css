@@ -1,0 +1,45 @@
+/* Above the ask spotlight, below the phone sheet. */
+.layer {
+  position: absolute;
+  inset: 0;
+  z-index: 16;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.card,
+.spark,
+.nope {
+  position: absolute;
+  left: 0;
+  top: 0;
+  opacity: 0;
+  will-change: transform, opacity;
+}
+
+.card {
+  box-shadow: var(--cardSh);
+}
+
+.spark {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--ok);
+}
+
+.spark:nth-child(odd) {
+  background: var(--tc, var(--ok));
+}
+
+.nope {
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--bad);
+  color: #fff;
+  font: 700 12px/1 var(--font-ui);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.25);
+}
