@@ -25,6 +25,15 @@ export function ReconnectBanner({ state }: { state: BannerState }) {
   );
 }
 
+export function GoogleButton({ href, onClick }: { href: string; onClick?: (e: MouseEvent) => void }) {
+  return (
+    <a className={styles.google} href={href} onClick={onClick}>
+      <span className={styles.googleMark} aria-hidden="true">G</span>
+      Log in with Google
+    </a>
+  );
+}
+
 export function DiscordButton({ href, onClick }: { href: string; onClick?: (e: MouseEvent) => void }) {
   return (
     <a className={styles.discord} href={href} onClick={onClick}>

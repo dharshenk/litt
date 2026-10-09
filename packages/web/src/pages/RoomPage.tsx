@@ -7,7 +7,7 @@ import { canIChoose, isMyTurn } from "../game/legal.js";
 import { declaredText, gameOverText, makeNamer, timedOutText } from "../game/text.js";
 import { useRoomConnection } from "../net/useRoomConnection.js";
 import type { QueuedEvent } from "../net/roomState.js";
-import { DiscordButton, Logo, ReconnectBanner, type BannerState } from "../components/Misc.js";
+import { DiscordButton, GoogleButton, Logo, ReconnectBanner, type BannerState } from "../components/Misc.js";
 import { ToastViewport, useToasts } from "../components/Toasts.js";
 import { Lobby } from "../room/Lobby.js";
 import { GameOver } from "../room/GameOver.js";
@@ -256,6 +256,10 @@ function Closed({ code, reason, onRetry }: { code: string; reason: string | null
     title = "This game has already started";
     note = "Only players with a seat can rejoin. Ask for an invite to the next game.";
     retry = false;
+  } else if (reason === "KICKED") {
+    title = "You were removed from this room";
+    note = "The host removed you from the lobby.";
+    retry = false;
   } else if (reason === "ROOM_NOT_FOUND") {
     title = `Room ${code} not found`;
     note = "Check the code with whoever invited you.";
@@ -281,6 +285,12 @@ function Closed({ code, reason, onRetry }: { code: string; reason: string | null
 
 function LoginGate({ code, onLogin }: { code: string; onLogin(): void }) {
   const login = api.interceptLogin;
+  const onMockLogin = login
+    ? (e: { preventDefault(): void }) => {
+        e.preventDefault();
+        void login().then(onLogin);
+      }
+    : undefined;
   return (
     <div className={styles.gate}>
       <Logo />
@@ -292,17 +302,10 @@ function LoginGate({ code, onLogin }: { code: string; onLogin(): void }) {
           <em>at the table.</em>
         </h1>
         <p className={styles.note}>Log in to join this room. Your seat is saved if you get disconnected.</p>
-        <DiscordButton
-          href={loginUrl(`/r/${code}`)}
-          onClick={
-            login
-              ? (e) => {
-                  e.preventDefault();
-                  void login().then(onLogin);
-                }
-              : undefined
-          }
-        />
+        <div style={{ display: "flex", flexWrap: "wrap", gap: 12 }}>
+          <DiscordButton href={loginUrl(`/r/${code}`)} onClick={onMockLogin} />
+          <GoogleButton href={loginUrl(`/r/${code}`, "google")} onClick={onMockLogin} />
+        </div>
         {import.meta.env.DEV && (
           <p className={styles.note}>
             Dev build: set a dev login on the <Link to="/">home page</Link> to play without Discord.

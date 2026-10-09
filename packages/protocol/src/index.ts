@@ -83,6 +83,7 @@ export type ClientMessage =
   | { t: "lobby.setTeam"; playerId: string; team: Team | null } // host only
   | { t: "lobby.setConfig"; config: RoomConfig } // host only, lobby only
   | { t: "lobby.start" } // host only
+  | { t: "lobby.kick"; playerId: string } // host only, lobby only; kicked player is disconnected and may not rejoin
   | { t: "room.rematch" } // host only, finished only → back to lobby, teams kept
   | { t: "game.ask"; target: string; card: Card }
   | { t: "game.declare"; set: SetId; assignment: Assignment }
@@ -94,6 +95,7 @@ export type ServerErrorCode =
   | "NOT_HOST"
   | "ROOM_NOT_FOUND"
   | "ROOM_IN_PROGRESS"
+  | "KICKED"
   | "WRONG_STATUS"
   | "CANNOT_START"
   /** Engine rejections are forwarded with the engine's ErrorCode. */

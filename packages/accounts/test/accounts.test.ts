@@ -166,6 +166,46 @@ describe("OAuth callback and sessions", () => {
     expect(response.headers.get("content-type")).toContain("text/plain");
   });
 
+  it("logs in with Google, prefixing the user id and using Google's profile fields", async () => {
+    const db = await createBetterSqliteDb(":memory:");
+    const calls: string[] = [];
+    const fetcher: typeof fetch = async (input) => {
+      const url = String(input);
+      calls.push(url);
+      if (url === "https://oauth2.googleapis.com/token") return Response.json({ access_token: TOKEN });
+      if (url === "https://openidconnect.googleapis.com/v1/userinfo") {
+        return Response.json({ sub: "98765", name: "Gia Google", picture: "https://example.com/g.png" });
+      }
+      throw new Error(`Unexpected fetch URL: ${url}`);
+    };
+    const accounts = createAccounts({
+      db, googleClientId: "g-id", googleClientSecret: "g-secret", sessionSecret: "session-secret-for-tests",
+      publicBaseUrl: BASE_URL, fetch: fetcher, now: () => NOW,
+    });
+    await (await import("../src/schema.js")).migrate(db);
+
+    const login = await accounts.handleLogin(new Request(`${BASE_URL}/auth/login?provider=google&next=/r/ABC`));
+    const authorize = new URL(login.headers.get("location")!);
+    expect(authorize.origin + authorize.pathname).toBe("https://accounts.google.com/o/oauth2/v2/auth");
+    expect(authorize.searchParams.get("client_id")).toBe("g-id");
+    expect(authorize.searchParams.get("scope")).toBe("openid profile");
+
+    const callback = await accounts.handleCallback(new Request(
+      `${BASE_URL}/auth/callback?code=abc&state=${authorize.searchParams.get("state")}`,
+      { headers: { cookie: oauthCookie(login) } },
+    ));
+    expect(callback.status).toBe(302);
+    expect(callback.headers.get("location")).toBe("/r/ABC");
+    const user = await accounts.getSessionUser(new Request(`${BASE_URL}/api/me`, { headers: { cookie: sessionCookie(callback) } }));
+    expect(user).toEqual({ id: "google:98765", displayName: "Gia Google", avatarUrl: "https://example.com/g.png" });
+  });
+
+  it("rejects login for a provider that is not configured", async () => {
+    const { accounts } = await setup();
+    const response = await accounts.handleLogin(new Request(`${BASE_URL}/auth/login?provider=google`));
+    expect(response.status).toBe(404);
+  });
+
   it("redirects Discord cancellations without contacting Discord", async () => {
     const fetcher = vi.fn<typeof fetch>();
     const setupResult = await setup({ fetch: fetcher }); db = setupResult.db;

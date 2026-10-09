@@ -3,7 +3,7 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import type { PlayerStats, UserProfile } from "@litt/protocol";
 import { DEV_NAME_PATTERN, api, getDevUser, loginUrl, setDevUser } from "../lib/api.js";
 import { Avatar } from "../components/Avatar.js";
-import { DiscordButton, Logo } from "../components/Misc.js";
+import { DiscordButton, GoogleButton, Logo } from "../components/Misc.js";
 import { ToastViewport, useToasts } from "../components/Toasts.js";
 import styles from "./Home.module.css";
 
@@ -67,6 +67,12 @@ export function Home() {
   };
 
   const login = api.interceptLogin;
+  const onMockLogin = login
+    ? (e: { preventDefault(): void }) => {
+        e.preventDefault();
+        void login().then(() => setReload((n) => n + 1));
+      }
+    : undefined;
 
   return (
     <div className={styles.page}>
@@ -85,17 +91,10 @@ export function Home() {
             friends on a voice call.
           </p>
           {me === null && (
-            <DiscordButton
-              href={loginUrl(location.pathname)}
-              onClick={
-                login
-                  ? (e) => {
-                      e.preventDefault();
-                      void login().then(() => setReload((n) => n + 1));
-                    }
-                  : undefined
-              }
-            />
+            <div style={{ display: "flex", flexWrap: "wrap", gap: 12 }}>
+              <DiscordButton href={loginUrl(location.pathname)} onClick={onMockLogin} />
+              <GoogleButton href={loginUrl(location.pathname, "google")} onClick={onMockLogin} />
+            </div>
           )}
           {me && (
             <div className={styles.actions}>
@@ -135,7 +134,7 @@ export function Home() {
             <Avatar name={me.displayName} avatarUrl={me.avatarUrl} team="A" size={34} />
             <div className={styles.who}>
               <span className={styles.name}>{me.displayName}</span>
-              <span className={styles.via}>{me.id.startsWith("dev:") ? "Signed in with a dev login" : "Signed in with Discord"}</span>
+              <span className={styles.via}>{me.id.startsWith("dev:") ? "Signed in with a dev login" : me.id.startsWith("google:") ? "Signed in with Google" : "Signed in with Discord"}</span>
             </div>
             <button type="button" className={styles.logout} onClick={logout}>
               Log out

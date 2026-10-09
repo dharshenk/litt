@@ -576,7 +576,7 @@ describe("AskSpotlight", () => {
     expect(box.getAttribute("aria-live")).toBe("polite");
     expect(within(box).getByText("Asking…")).toBeTruthy();
     expect(box.getAttribute("data-outcome")).toBe("pending");
-    advance(700);
+    advance(1200);
     expect(within(box).getByText("Transfer #15")).toBeTruthy();
     expect(within(box).getByText(`Bob had it — ${cardLabel("5H")} goes to you`)).toBeTruthy();
     expect(box.getAttribute("data-outcome")).toBe("ok");
@@ -584,7 +584,7 @@ describe("AskSpotlight", () => {
 
   it("reveals a failed ask and whose turn it becomes", () => {
     const { advance } = renderSpot(spot({ ok: false }), null);
-    advance(700);
+    advance(1200);
     const box = screen.getByRole("status");
     expect(within(box).getByText("Failed ask")).toBeTruthy();
     expect(within(box).getByText("Bob doesn’t have it — Bob’s turn")).toBeTruthy();
@@ -593,16 +593,16 @@ describe("AskSpotlight", () => {
 
   it("speaks in the second person when I am the one who was asked", () => {
     const { advance } = renderSpot(spot({ asker: "bob", target: "me", ok: false }), null);
-    advance(700);
+    advance(1200);
     expect(screen.getByText("You don’t have it — Your turn")).toBeTruthy();
     expect(screen.getByText("asks")).toBeTruthy();
   });
 
-  it("fades out at 3.2s and reports done at 3.6s", () => {
+  it("fades out at 5.7s and reports done at 6.1s", () => {
     const { advance, onDone } = renderSpot(spot());
     advance(1000);
     expect(screen.getByRole("status").hasAttribute("data-visible")).toBe(true);
-    advance(2200);
+    advance(4700);
     expect(screen.getByRole("status").hasAttribute("data-visible")).toBe(false);
     expect(onDone).not.toHaveBeenCalled();
     advance(400);

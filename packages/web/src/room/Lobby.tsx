@@ -156,6 +156,21 @@ export function Lobby({ room, meId, send }: Props) {
                               {t}
                             </button>
                           ))}
+                          {p.id !== meId && (
+                            <button
+                              type="button"
+                              className={styles.move}
+                              aria-label={`Kick ${p.displayName}`}
+                              title={`Kick ${p.displayName}`}
+                              onClick={() => {
+                                if (window.confirm(`Kick ${p.displayName} from the room?`)) {
+                                  send({ t: "lobby.kick", playerId: p.id });
+                                }
+                              }}
+                            >
+                              ✕
+                            </button>
+                          )}
                         </div>
                       )}
                     </div>

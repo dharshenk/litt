@@ -16,6 +16,7 @@ export const clientMessageSchema = z.discriminatedUnion("t", [
   z.object({ t: z.literal("lobby.setTeam"), playerId: z.string(), team: teamSchema.nullable() }).strict(),
   z.object({ t: z.literal("lobby.setConfig"), config: roomConfigSchema }).strict(),
   z.object({ t: z.literal("lobby.start") }).strict(),
+  z.object({ t: z.literal("lobby.kick"), playerId: z.string() }).strict(),
   z.object({ t: z.literal("room.rematch") }).strict(),
   z.object({ t: z.literal("game.ask"), target: z.string(), card: cardSchema }).strict(),
   z.object({ t: z.literal("game.declare"), set: setSchema, assignment: z.record(cardSchema, z.string()) }).strict(),

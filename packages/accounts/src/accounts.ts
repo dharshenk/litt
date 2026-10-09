@@ -4,19 +4,71 @@ import type { Accounts, AccountsOptions, FinishedGameRecord, SqlDb } from "./typ
 const OAUTH_COOKIE = "litt_oauth";
 const SESSION_COOKIE = "litt_session";
 const SESSION_SECONDS = 30 * 24 * 60 * 60;
-const TOKEN_URL = "https://discord.com/api/oauth2/token";
-const PROFILE_URL = "https://discord.com/api/users/@me";
+
+type Provider = "discord" | "google";
+
+interface ProviderConfig {
+  authorizeUrl: string;
+  tokenUrl: string;
+  profileUrl: string;
+  scope: string;
+  extraAuthorizeParams: Record<string, string>;
+}
+
+const PROVIDERS: Record<Provider, ProviderConfig> = {
+  discord: {
+    authorizeUrl: "https://discord.com/oauth2/authorize",
+    tokenUrl: "https://discord.com/api/oauth2/token",
+    profileUrl: "https://discord.com/api/users/@me",
+    scope: "identify",
+    extraAuthorizeParams: { prompt: "none" },
+  },
+  google: {
+    authorizeUrl: "https://accounts.google.com/o/oauth2/v2/auth",
+    tokenUrl: "https://oauth2.googleapis.com/token",
+    profileUrl: "https://openidconnect.googleapis.com/v1/userinfo",
+    scope: "openid profile",
+    extraAuthorizeParams: {},
+  },
+};
 
 interface OAuthState {
   state: string;
   next: string;
+  provider: Provider;
 }
 
-interface DiscordProfile {
+/** Provider-neutral profile. `id` is stored as the user id (Google ids are prefixed to avoid clashing with Discord's). */
+interface OAuthProfile {
   id: string;
   username: string;
-  global_name?: string | null;
-  avatar?: string | null;
+  displayName: string;
+  avatarUrl: string | null;
+}
+
+function isProvider(value: unknown): value is Provider {
+  return value === "discord" || value === "google";
+}
+
+function parseProfile(provider: Provider, body: unknown): OAuthProfile {
+  if (!jsonObject(body)) throw new Error(`${provider} profile response was invalid`);
+  if (provider === "discord") {
+    if (typeof body.id !== "string" || typeof body.username !== "string") throw new Error("Discord profile response was invalid");
+    return {
+      id: body.id,
+      username: body.username,
+      displayName: typeof body.global_name === "string" && body.global_name ? body.global_name : body.username,
+      avatarUrl: typeof body.avatar === "string" ? `https://cdn.discordapp.com/avatars/${body.id}/${body.avatar}.png?size=128` : null,
+    };
+  }
+  if (typeof body.sub !== "string" || body.sub.length === 0) throw new Error("Google profile response was invalid");
+  const name = typeof body.name === "string" && body.name ? body.name : `Player ${body.sub.slice(-4)}`;
+  return {
+    id: `google:${body.sub}`,
+    username: name,
+    displayName: name,
+    avatarUrl: typeof body.picture === "string" ? body.picture : null,
+  };
 }
 
 interface UserRow {
@@ -107,7 +159,7 @@ function mapStats(row: StatsRow): PlayerStats {
   };
 }
 
-async function upsertUser(db: SqlDb, profile: DiscordProfile, now: number): Promise<void> {
+async function upsertUser(db: SqlDb, profile: OAuthProfile, now: number): Promise<void> {
   await db.run(
     `INSERT INTO users (discord_id, username, display_name, avatar, created_at, last_seen)
      VALUES (?, ?, ?, ?, ?, ?)
@@ -116,7 +168,7 @@ async function upsertUser(db: SqlDb, profile: DiscordProfile, now: number): Prom
        display_name = excluded.display_name,
        avatar = excluded.avatar,
        last_seen = excluded.last_seen`,
-    [profile.id, profile.username, profile.global_name ?? profile.username, profile.avatar ? `https://cdn.discordapp.com/avatars/${profile.id}/${profile.avatar}.png?size=128` : null, now, now],
+    [profile.id, profile.username, profile.displayName, profile.avatarUrl, now, now],
   );
 }
 
@@ -144,19 +196,30 @@ export function createAccounts(options: AccountsOptions): Accounts {
     return bytesToBase64Url(new Uint8Array(await crypto.subtle.sign("HMAC", key, new TextEncoder().encode(payload))));
   }
 
+  function credentials(provider: Provider): { clientId: string; clientSecret: string } | null {
+    const clientId = provider === "discord" ? options.discordClientId : options.googleClientId;
+    const clientSecret = provider === "discord" ? options.discordClientSecret : options.googleClientSecret;
+    return clientId && clientSecret ? { clientId, clientSecret } : null;
+  }
+
   return {
     async handleLogin(req) {
       const url = new URL(req.url);
+      const requested = url.searchParams.get("provider");
+      const provider: Provider = requested === null ? (credentials("discord") ? "discord" : "google") : isProvider(requested) ? requested : "discord";
+      const creds = credentials(provider);
+      if (!creds) return new Response(`Login with ${provider} is not configured`, { status: 404, headers: { "content-type": "text/plain; charset=utf-8" } });
+      const config = PROVIDERS[provider];
       const stateBytes = crypto.getRandomValues(new Uint8Array(32));
       const state = bytesToBase64Url(stateBytes);
-      const oauthState: OAuthState = { state, next: safeNext(url.searchParams.get("next"), options.publicBaseUrl) };
+      const oauthState: OAuthState = { state, next: safeNext(url.searchParams.get("next"), options.publicBaseUrl), provider };
       const stateCookie = bytesToBase64Url(new TextEncoder().encode(JSON.stringify(oauthState)));
-      const authorize = new URL("https://discord.com/oauth2/authorize");
+      const authorize = new URL(config.authorizeUrl);
       authorize.searchParams.set("response_type", "code");
-      authorize.searchParams.set("client_id", options.discordClientId);
-      authorize.searchParams.set("scope", "identify");
+      authorize.searchParams.set("client_id", creds.clientId);
+      authorize.searchParams.set("scope", config.scope);
       authorize.searchParams.set("state", state);
-      authorize.searchParams.set("prompt", "none");
+      for (const [key, value] of Object.entries(config.extraAuthorizeParams)) authorize.searchParams.set(key, value);
       authorize.searchParams.set("redirect_uri", callbackUrl);
       return redirect(authorize.toString(), [`${OAUTH_COOKIE}=${stateCookie}; HttpOnly; SameSite=Lax; Path=/auth; Max-Age=600${secure}`]);
     },
@@ -173,7 +236,11 @@ export function createAccounts(options: AccountsOptions): Accounts {
         if (cookie) {
           const decoded: unknown = JSON.parse(new TextDecoder().decode(base64UrlToBytes(cookie)));
           if (jsonObject(decoded) && typeof decoded.state === "string" && typeof decoded.next === "string") {
-            oauthState = { state: decoded.state, next: safeNext(decoded.next, options.publicBaseUrl) };
+            oauthState = {
+              state: decoded.state,
+              next: safeNext(decoded.next, options.publicBaseUrl),
+              provider: isProvider(decoded.provider) ? decoded.provider : "discord",
+            };
           }
         }
       } catch {
@@ -183,38 +250,35 @@ export function createAccounts(options: AccountsOptions): Accounts {
         return new Response("Invalid OAuth state", { status: 400, headers: { "content-type": "text/plain; charset=utf-8" } });
       }
 
+      const provider = oauthState.provider;
+      const creds = credentials(provider);
+      if (!creds) return new Response(`Login with ${provider} is not configured`, { status: 404, headers: { "content-type": "text/plain; charset=utf-8" } });
+      const config = PROVIDERS[provider];
+
       try {
-        const tokenResponse = await fetcher(TOKEN_URL, {
+        const tokenResponse = await fetcher(config.tokenUrl, {
           method: "POST",
           headers: { "content-type": "application/x-www-form-urlencoded" },
           body: new URLSearchParams({
             grant_type: "authorization_code",
             code,
             redirect_uri: callbackUrl,
-            client_id: options.discordClientId,
-            client_secret: options.discordClientSecret,
+            client_id: creds.clientId,
+            client_secret: creds.clientSecret,
           }),
         });
-        if (!tokenResponse.ok) throw new Error("Discord token exchange failed");
+        if (!tokenResponse.ok) throw new Error(`${provider} token exchange failed`);
         const tokenBody: unknown = await tokenResponse.json();
         if (!jsonObject(tokenBody) || typeof tokenBody.access_token !== "string" || tokenBody.access_token.length === 0) {
-          throw new Error("Discord token response was invalid");
+          throw new Error(`${provider} token response was invalid`);
         }
 
-        const profileResponse = await fetcher(PROFILE_URL, {
+        const profileResponse = await fetcher(config.profileUrl, {
           headers: { authorization: `Bearer ${tokenBody.access_token}` },
         });
-        if (!profileResponse.ok) throw new Error("Discord profile request failed");
+        if (!profileResponse.ok) throw new Error(`${provider} profile request failed`);
         const profileBody: unknown = await profileResponse.json();
-        if (!jsonObject(profileBody) || typeof profileBody.id !== "string" || typeof profileBody.username !== "string") {
-          throw new Error("Discord profile response was invalid");
-        }
-        const profile: DiscordProfile = {
-          id: profileBody.id,
-          username: profileBody.username,
-          global_name: typeof profileBody.global_name === "string" ? profileBody.global_name : null,
-          avatar: typeof profileBody.avatar === "string" ? profileBody.avatar : null,
-        };
+        const profile = parseProfile(provider, profileBody);
         const timestamp = now();
         await upsertUser(options.db, profile, timestamp);
 
@@ -225,7 +289,7 @@ export function createAccounts(options: AccountsOptions): Accounts {
           `${OAUTH_COOKIE}=; HttpOnly; SameSite=Lax; Path=/auth; Max-Age=0${secure}`,
         ]);
       } catch {
-        return new Response("Discord authentication failed", { status: 502, headers: { "content-type": "text/plain; charset=utf-8" } });
+        return new Response(`${provider === "google" ? "Google" : "Discord"} authentication failed`, { status: 502, headers: { "content-type": "text/plain; charset=utf-8" } });
       }
     },
 

@@ -48,9 +48,9 @@ describe("Node adapter production integration", () => {
     expect(await accounts.getSessionUser(new Request("http://localhost/api/me?devUser=alice"))).toBeNull();
   });
 
-  it("requires Discord and session credentials in production even with injected accounts", async () => {
+  it("requires OAuth and session credentials in production even with injected accounts", async () => {
     await expect(startNodeServer({ port: 0, env: { NODE_ENV: "production" }, accounts: createDevAccounts() }))
-      .rejects.toThrow("Production requires DISCORD_CLIENT_ID, DISCORD_CLIENT_SECRET, and SESSION_SECRET");
+      .rejects.toThrow("Production requires SESSION_SECRET and a complete Discord or Google client id/secret pair");
   });
 
   it("serves static assets and SPA routes but never registers dev state in production", async () => {

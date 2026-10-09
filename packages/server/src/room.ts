@@ -24,6 +24,7 @@ interface Seat {
 export class Room {
   private readonly seats = new Map<string, Seat>();
   private readonly connections = new Map<string, string>();
+  private readonly kicked = new Set<string>();
   private hostId: string;
   private hostVacant = false;
   private status: RoomStatus = "lobby";
@@ -44,6 +45,11 @@ export class Room {
   join(connId: string, user: UserProfile): void {
     if (this.disposed) {
       this.deps.closeConnection(connId, "disposed");
+      return;
+    }
+    if (this.kicked.has(user.id)) {
+      this.error(connId, "KICKED", "You were removed from this room by the host");
+      this.deps.closeConnection(connId, "kicked");
       return;
     }
     let seat = this.seats.get(user.id);
@@ -163,6 +169,27 @@ export class Room {
         }
         seat.player.team = msg.team;
         this.broadcastState();
+        return;
+      }
+      case "lobby.kick": {
+        const seat = this.seats.get(msg.playerId);
+        if (!seat) {
+          this.error(connId, "UNKNOWN_PLAYER", "Player is not in this room");
+          return;
+        }
+        if (msg.playerId === this.hostId) {
+          this.error(connId, "BAD_MESSAGE", "The host cannot be kicked");
+          return;
+        }
+        this.kicked.add(msg.playerId);
+        this.seats.delete(msg.playerId);
+        if (seat.connId) {
+          this.connections.delete(seat.connId);
+          this.error(seat.connId, "KICKED", "You were removed from the room by the host");
+          this.deps.closeConnection(seat.connId, "kicked");
+        }
+        this.broadcastState();
+        this.deps.onConnectionsChanged?.();
         return;
       }
       case "lobby.setConfig":

@@ -29,8 +29,8 @@ export function wsUrl(path: string): string {
   return `${scheme}//${window.location.host}${apiUrl(path)}`;
 }
 
-export function loginUrl(next: string): string {
-  return `/auth/login?next=${encodeURIComponent(next)}`;
+export function loginUrl(next: string, provider?: "discord" | "google"): string {
+  return `/auth/login?next=${encodeURIComponent(next)}${provider ? `&provider=${provider}` : ""}`;
 }
 
 // ---------- HTTP API ----------

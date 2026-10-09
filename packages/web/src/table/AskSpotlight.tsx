@@ -26,7 +26,7 @@ interface Props {
 
 type Stage = "enter" | "asking" | "result" | "leaving";
 
-/** Timeline: "Asking…" until 0.7s, then the result; fades out at 3.2s. */
+/** Timeline: "Asking…" until 1.2s, then the result; fades out at 5.7s. */
 export function AskSpotlight({ spot, namer, teamOf, transferSeq, onDone }: Props) {
   const [stage, setStage] = useState<Stage>("enter");
   const mobile = useIsMobile();
@@ -39,9 +39,9 @@ export function AskSpotlight({ spot, namer, teamOf, transferSeq, onDone }: Props
     const id = spot.id;
     const timers = [
       setTimeout(() => setStage("asking"), 30),
-      setTimeout(() => setStage("result"), 700),
-      setTimeout(() => setStage("leaving"), 3150),
-      setTimeout(() => done.current(id), 3600),
+      setTimeout(() => setStage("result"), 1200),
+      setTimeout(() => setStage("leaving"), 5650),
+      setTimeout(() => done.current(id), 6100),
     ];
     return () => timers.forEach(clearTimeout);
   }, [spot?.id]);

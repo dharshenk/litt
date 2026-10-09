@@ -72,6 +72,31 @@
   filter: brightness(1.08);
 }
 
+.google {
+  align-self: flex-start;
+  height: 52px;
+  padding: 0 24px;
+  border-radius: 12px;
+  background: #fff;
+  color: #1f1f1f;
+  border: 1px solid #dadce0;
+  font: 600 15px var(--font-ui);
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  text-decoration: none;
+}
+
+.google:hover {
+  color: #1f1f1f;
+  filter: brightness(0.97);
+}
+
+.googleMark {
+  font: 700 18px var(--font-ui);
+  color: #4285f4;
+}
+
 .discordMark {
   width: 18px;
   height: 14px;

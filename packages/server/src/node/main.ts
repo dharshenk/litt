@@ -14,19 +14,21 @@ import { RoomRegistry } from "../registry.js";
 import { Room } from "../room.js";
 
 export async function createNodeAccounts(env: NodeJS.ProcessEnv = process.env, port = 8787): Promise<Accounts> {
-  if (env.NODE_ENV === "development" || !env.DISCORD_CLIENT_ID) {
-    if (env.NODE_ENV === "production") throw new Error("Production requires Discord authentication; dev accounts are disabled");
+  if (env.NODE_ENV === "development" || !(env.DISCORD_CLIENT_ID || env.GOOGLE_CLIENT_ID)) {
+    if (env.NODE_ENV === "production") throw new Error("Production requires Discord or Google authentication; dev accounts are disabled");
     return createDevAccounts();
   }
-  if (!env.DISCORD_CLIENT_SECRET || !env.SESSION_SECRET) {
-    throw new Error("DISCORD_CLIENT_SECRET and SESSION_SECRET are required with DISCORD_CLIENT_ID");
-  }
+  if (env.DISCORD_CLIENT_ID && !env.DISCORD_CLIENT_SECRET) throw new Error("DISCORD_CLIENT_SECRET is required with DISCORD_CLIENT_ID");
+  if (env.GOOGLE_CLIENT_ID && !env.GOOGLE_CLIENT_SECRET) throw new Error("GOOGLE_CLIENT_SECRET is required with GOOGLE_CLIENT_ID");
+  if (!env.SESSION_SECRET) throw new Error("SESSION_SECRET is required when OAuth login is configured");
   const { createAccounts } = await import("@litt/accounts");
   const { createBetterSqliteDb } = await import("@litt/accounts/node");
   return createAccounts({
     db: await createBetterSqliteDb(env.DATABASE_PATH ?? "./litt.db"),
     discordClientId: env.DISCORD_CLIENT_ID,
     discordClientSecret: env.DISCORD_CLIENT_SECRET,
+    googleClientId: env.GOOGLE_CLIENT_ID,
+    googleClientSecret: env.GOOGLE_CLIENT_SECRET,
     sessionSecret: env.SESSION_SECRET,
     publicBaseUrl: env.PUBLIC_BASE_URL ?? `http://localhost:${port}`,
   });
@@ -44,8 +46,8 @@ export async function startNodeServer(options: NodeServerOptions = {}) {
   const env = options.env ?? process.env;
   const port = options.port ?? Number(env.PORT ?? 8787);
   if (!Number.isInteger(port) || port < 0 || port > 65535) throw new Error("PORT must be an integer between 0 and 65535");
-  if (env.NODE_ENV === "production" && (!env.DISCORD_CLIENT_ID || !env.DISCORD_CLIENT_SECRET || !env.SESSION_SECRET)) {
-    throw new Error("Production requires DISCORD_CLIENT_ID, DISCORD_CLIENT_SECRET, and SESSION_SECRET");
+  if (env.NODE_ENV === "production" && (!env.SESSION_SECRET || !((env.DISCORD_CLIENT_ID && env.DISCORD_CLIENT_SECRET) || (env.GOOGLE_CLIENT_ID && env.GOOGLE_CLIENT_SECRET)))) {
+    throw new Error("Production requires SESSION_SECRET and a complete Discord or Google client id/secret pair");
   }
   const accounts = options.accounts ?? await createNodeAccounts(env, port);
   const engine: Engine = { createGame, apply, playerView };

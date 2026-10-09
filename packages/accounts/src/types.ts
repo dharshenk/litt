@@ -27,8 +27,11 @@ export interface FinishedGameRecord {
 
 export interface AccountsOptions {
   db: SqlDb;
-  discordClientId: string;
-  discordClientSecret: string;
+  /** Each provider is enabled only when both its id and secret are set. */
+  discordClientId?: string;
+  discordClientSecret?: string;
+  googleClientId?: string;
+  googleClientSecret?: string;
   /** Used to HMAC-sign session cookies. */
   sessionSecret: string;
   /** e.g. "http://localhost:8787" — used to build the OAuth redirect URI. */
@@ -41,6 +44,7 @@ export interface AccountsOptions {
 
 /** Everything is web-standard Request/Response so it runs on Node and Workers. */
 export interface Accounts {
+  /** `?provider=discord|google` picks the provider (default: Discord, else Google). */
   handleLogin(req: Request): Promise<Response>;
   handleCallback(req: Request): Promise<Response>;
   handleLogout(req: Request): Promise<Response>;
