@@ -22,11 +22,10 @@ interface Anchor {
 
 const SPARKS = 10;
 const HIT_MS = 1000;
-const MISS_MS = 1150;
 
 /**
  * As the spotlight reveals an ask, the asked card flies between the two player tiles:
- * handed from target to asker on a hit, thrown at the target and bounced back on a miss.
+ * handed from target to asker on a hit. On a miss the target's tile just shakes.
  */
 export function PassFlight({ spot, teamOf }: Props) {
   const layer = useRef<HTMLDivElement>(null);
@@ -36,7 +35,7 @@ export function PassFlight({ spot, teamOf }: Props) {
     if (!spot || !el || typeof el.animate !== "function") return;
     if (window.matchMedia?.("(prefers-reduced-motion: reduce)").matches) return;
     const running: Animation[] = [];
-    const timer = setTimeout(() => running.push(...(spot.ok ? handOver(el, spot) : bounceOff(el, spot))), REVEAL_MS);
+    const timer = setTimeout(() => running.push(...(spot.ok ? handOver(el, spot) : shake(el, spot))), REVEAL_MS);
     return () => {
       clearTimeout(timer);
       running.forEach((a) => a.cancel());
@@ -44,14 +43,13 @@ export function PassFlight({ spot, teamOf }: Props) {
   }, [spot?.id]);
 
   if (!spot) return null;
+  if (!spot.ok) return <div ref={layer} className={styles.layer} aria-hidden="true" />;
   return (
     <div ref={layer} className={styles.layer} data-team={teamOf(spot.asker)} aria-hidden="true">
       <PlayingCard card={spot.card} size="tiny" className={styles.card} />
-      {spot.ok ? (
-        Array.from({ length: SPARKS }, (_, i) => <span key={i} className={styles.spark} />)
-      ) : (
-        <span className={styles.nope}>✕</span>
-      )}
+      {Array.from({ length: SPARKS }, (_, i) => (
+        <span key={i} className={styles.spark} />
+      ))}
     </div>
   );
 }
@@ -111,61 +109,19 @@ function handOver(layer: HTMLElement, spot: Spot): Animation[] {
   ];
 }
 
-/** Asker throws the card, the target shakes it off with a ✕ and it tumbles back towards the asker. */
-function bounceOff(layer: HTMLElement, spot: Spot): Animation[] {
-  const from = anchor(layer, spot.asker);
-  const to = anchor(layer, spot.target);
-  if (!from || !to) return [];
-  const a = from.at;
-  const hit = lerp(a, to.at, 0.82);
-  const c = control(a, hit, layer);
-  const impact = 0.48;
-  const badge = { x: to.at.x + to.radius, y: to.at.y - to.radius };
-
-  const flight: Keyframe[] = [{ offset: 0, transform: place(a, 0, 0.3), opacity: 0 }];
-  for (let i = 0; i <= 8; i++) {
-    const k = i / 8;
-    flight.push({
-      offset: 0.1 + k * (impact - 0.1),
-      transform: place(bezier(a, c, hit, k * k), -10 + 30 * k, 1.25 + 0.2 * k),
-      opacity: 1,
-    });
-  }
-  // Ricochet back towards the asker, then fall away.
-  const back = lerp(hit, a, 0.55);
-  const rebound = { x: back.x, y: back.y - 50 };
-  const drop = { x: back.x, y: back.y + 40 };
-  for (let i = 1; i <= 8; i++) {
-    const k = i / 8;
-    flight.push({
-      offset: impact + k * (1 - impact),
-      transform: place(bezier(hit, rebound, drop, k), 20 - 160 * k, 1.45 - 0.5 * k),
-      opacity: 1 - k * k,
-    });
-  }
-
-  const hitAt = MISS_MS * impact;
-  const bad = cssVar(to.tile, "--bad");
-  const shake = [0, -8, 7, -5, 3, 0];
+/** The asked player's tile shakes the ask off. */
+function shake(layer: HTMLElement, spot: Spot): Animation[] {
+  const tile = anchor(layer, spot.target)?.tile;
+  if (!tile) return [];
+  const bad = cssVar(tile, "--bad");
+  const steps = [0, -8, 7, -5, 3, 0];
   return [
-    card(layer).animate(flight, { duration: MISS_MS }),
-    from.tile.animate(nudge(a, to.at), { duration: 340, easing: "ease-out" }),
-    to.tile.animate(
-      shake.map((dx, i) => ({
+    tile.animate(
+      steps.map((dx, i) => ({
         transform: `translateX(${dx}px)`,
-        boxShadow: `0 0 0 ${i === 0 || i === shake.length - 1 ? 0 : 3}px ${bad}`,
+        boxShadow: `0 0 0 ${i === 0 || i === steps.length - 1 ? 0 : 3}px ${bad}`,
       })),
-      { duration: 460, delay: hitAt - 20, easing: "ease-out" },
-    ),
-    layer.querySelector<HTMLElement>(`.${styles.nope}`)!.animate(
-      [
-        { transform: place(badge, -20, 0), opacity: 0 },
-        { transform: place(badge, 8, 1.3), opacity: 1, offset: 0.18 },
-        { transform: place(badge, 0, 1), opacity: 1, offset: 0.3 },
-        { transform: place(badge, 0, 1), opacity: 1, offset: 0.75 },
-        { transform: place({ x: badge.x, y: badge.y - 10 }, 0, 0.9), opacity: 0 },
-      ],
-      { duration: 1000, delay: hitAt, easing: "ease-out" },
+      { duration: 460, easing: "ease-out" },
     ),
   ];
 }

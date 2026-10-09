@@ -8,8 +8,7 @@
 }
 
 .card,
-.spark,
-.nope {
+.spark {
   position: absolute;
   left: 0;
   top: 0;
@@ -30,16 +29,4 @@
 
 .spark:nth-child(odd) {
   background: var(--tc, var(--ok));
-}
-
-.nope {
-  display: grid;
-  place-items: center;
-  width: 22px;
-  height: 22px;
-  border-radius: 50%;
-  background: var(--bad);
-  color: #fff;
-  font: 700 12px/1 var(--font-ui);
-  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.25);
 }

@@ -641,11 +641,10 @@ describe("PassFlight", () => {
     expect(animated()).toContain(tile("maya"));
   });
 
-  it("bounces a missed ask off the target", () => {
+  it("only shakes the target on a missed ask", () => {
     renderTable({}, { spot: { id: 1, asker: "maya", target: "bob", card: "3C", ok: false } });
     act(() => void vi.advanceTimersByTime(REVEAL_MS));
-    expect(animated()).toContain(tile("bob"));
-    expect(animated()).toContain(tile("maya"));
+    expect(animated()).toEqual([tile("bob")]);
   });
 
   it("stays still for players who prefer reduced motion", () => {
