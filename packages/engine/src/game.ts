@@ -233,7 +233,8 @@ function declare(state: GameState, { player, set, assignment }: DeclareAction): 
   const team = declarer.team;
   const other = otherTeam(team);
   const assigned = Object.fromEntries(setCards.map((c) => [c, assignment[c]!])) as Assignment;
-  const correct = setCards.every((c) => handOf(state, assigned[c]!).includes(c));
+  const holders = holdersOf(state, setCards);
+  const correct = setCards.every((c) => holders[c] === assigned[c]);
   const outcome: Outcome = correct
     ? `WON_${team}`
     : state.config.wrongDeclaration === "award"
@@ -250,7 +251,7 @@ function declare(state: GameState, { player, set, assignment }: DeclareAction): 
   next.resolutions.push({ set, declaredBy: player, team, correct, outcome });
 
   const events: GameEvent[] = [
-    { type: "declared", player, team, set, assignment: assigned, correct, outcome },
+    { type: "declared", player, team, set, assignment: assigned, holders, correct, outcome },
   ];
 
   if (SET_IDS.every((s) => next.sets[s] !== "ACTIVE")) {
@@ -270,6 +271,16 @@ function declare(state: GameState, { player, set, assignment }: DeclareAction): 
     events.push({ type: "chooseRequired", chooser: { ...chooser }, eligible: [...eligible], reason });
   }
   return { ok: true, state: next, events };
+}
+
+/** Who really holds each of `cards`, in the order given. Call before the set's cards leave the hands. */
+function holdersOf(state: GameState, cards: readonly Card[]): Assignment {
+  const holders: Assignment = {};
+  for (const card of cards) {
+    const holder = state.players.find((p) => handOf(state, p.id).includes(card));
+    if (holder) holders[card] = holder.id;
+  }
+  return holders;
 }
 
 /** Returns a player-facing problem with the assignment, or undefined if it is well-formed. */

@@ -1,6 +1,7 @@
-import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { act, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
 import { beforeEach, describe, expect, it } from "vitest";
+import type { GameEvent } from "@litt/engine";
 import type { ClientMessage, ServerMessage, UserProfile } from "@litt/protocol";
 import { ToastProvider } from "../src/components/Toasts.js";
 import { setApi } from "../src/lib/api.js";
@@ -76,6 +77,34 @@ const start = (conn: FakeConn, view = makeView()) => {
 };
 
 beforeEach(() => install());
+
+type Declared = Extract<GameEvent, { type: "declared" }>;
+
+/** Team B declares High ♣ wrongly: 10♣ was in my hand, and A♣ was with Priya, not Bob. */
+const wrongHighC: Declared = {
+  type: "declared",
+  player: "bob",
+  team: "B",
+  set: "HIGH_C",
+  assignment: { "9C": "bob", "10C": "priya", JC: "bob", QC: "frank", KC: "priya", AC: "bob" },
+  holders: { "9C": "bob", "10C": "me", JC: "bob", QC: "frank", KC: "priya", AC: "priya" },
+  correct: false,
+  outcome: "WON_A",
+};
+
+/** Team B declares High ♦ wrongly in a game that nullifies: Frank, not Bob, had Q♦. */
+const wrongHighD: Declared = {
+  type: "declared",
+  player: "bob",
+  team: "B",
+  set: "HIGH_D",
+  assignment: { "9D": "bob", "10D": "bob", JD: "priya", QD: "bob", KD: "frank", AD: "priya" },
+  holders: { "9D": "bob", "10D": "bob", JD: "priya", QD: "frank", KD: "frank", AD: "priya" },
+  correct: false,
+  outcome: "NULL",
+};
+
+const dialog = () => screen.getByRole("dialog", { name: /Wrong declaration/ });
 
 describe("RoomPage: getting in", () => {
   it("asks a logged-out visitor to log in, and does not connect", async () => {
@@ -200,7 +229,7 @@ describe("RoomPage: events and toasts", () => {
     start(conn);
     deliver(conn, {
       t: "game.event",
-      event: { type: "declared", player: "maya", team: "A", set: "LOW_H", assignment: {}, correct: true, outcome: "WON_A" },
+      event: { type: "declared", player: "maya", team: "A", set: "LOW_H", assignment: {}, holders: {}, correct: true, outcome: "WON_A" },
     });
     expect(await screen.findByText(`Maya declared ${setInfo("LOW_H").name} — correct. Team A +1`)).toBeTruthy();
   });
@@ -208,11 +237,7 @@ describe("RoomPage: events and toasts", () => {
   it("toasts a wrong declaration, and a nullified one", async () => {
     const conn = await renderRoom();
     start(conn);
-    deliver(
-      conn,
-      { t: "game.event", event: { type: "declared", player: "bob", team: "B", set: "HIGH_C", assignment: {}, correct: false, outcome: "WON_A" } },
-      { t: "game.event", event: { type: "declared", player: "bob", team: "B", set: "HIGH_D", assignment: {}, correct: false, outcome: "NULL" } },
-    );
+    deliver(conn, { t: "game.event", event: wrongHighC }, { t: "game.event", event: wrongHighD });
     expect(await screen.findByText(`Bob declared ${setInfo("HIGH_C").name} — wrong. Team A +1`)).toBeTruthy();
     expect(await screen.findByText(`Bob declared ${setInfo("HIGH_D").name} — wrong. The set is nullified.`)).toBeTruthy();
   });
@@ -263,6 +288,78 @@ describe("RoomPage: events and toasts", () => {
     await screen.findByText("Bob’s turn.");
     deliver(conn, { t: "game.view", view: makeView(), turnDeadline: null });
     expect(screen.getAllByText("Bob’s turn.")).toHaveLength(1);
+  });
+});
+
+describe("RoomPage: wrong declarations", () => {
+  it("opens a popup showing who really held each card", async () => {
+    const conn = await renderRoom();
+    start(conn);
+    expect(screen.queryByRole("dialog")).toBeNull();
+    deliver(conn, { t: "game.event", event: wrongHighC });
+    const popup = await screen.findByRole("dialog", { name: /Wrong declaration/ });
+    expect(within(popup).getByRole("heading", { name: setInfo("HIGH_C").full })).toBeTruthy();
+    expect(within(popup).getByText("Declared by Bob. Team A +1")).toBeTruthy();
+    const rows = within(popup).getAllByRole("listitem");
+    expect(rows).toHaveLength(6);
+    // 10♣ was in my hand, though Bob named Priya.
+    expect(within(rows[1]!).getByText("You")).toBeTruthy();
+    expect(within(rows[1]!).getByText("Declared as Priya")).toBeTruthy();
+  });
+
+  it("is shown to the declarer too", async () => {
+    const conn = await renderRoom();
+    start(conn);
+    deliver(conn, { t: "game.event", event: { ...wrongHighC, player: "me", team: "A", outcome: "WON_B" } });
+    expect(within(await screen.findByRole("dialog", { name: /Wrong declaration/ })).getByText("Declared by you. Team B +1")).toBeTruthy();
+  });
+
+  it("does not open for a correct declaration", async () => {
+    const conn = await renderRoom();
+    start(conn);
+    const assignment = { "2H": "me", "3H": "me", "4H": "maya", "5H": "maya", "6H": "eve", "7H": "eve" };
+    deliver(conn, {
+      t: "game.event",
+      event: { type: "declared", player: "maya", team: "A", set: "LOW_H", assignment, holders: assignment, correct: true, outcome: "WON_A" },
+    });
+    await screen.findByText(`Maya declared ${setInfo("LOW_H").name} — correct. Team A +1`);
+    expect(screen.queryByRole("dialog")).toBeNull();
+  });
+
+  it("closes with 'Got it', leaving the table as it was", async () => {
+    const conn = await renderRoom();
+    start(conn);
+    deliver(conn, { t: "game.event", event: wrongHighC });
+    await screen.findByRole("dialog", { name: /Wrong declaration/ });
+    fireEvent.click(within(dialog()).getByRole("button", { name: "Got it" }));
+    expect(screen.queryByRole("dialog")).toBeNull();
+    expect(screen.getByRole("region", { name: "Your hand" })).toBeTruthy();
+  });
+
+  it("queues a second wrong declaration behind the first, so neither goes unread", async () => {
+    const conn = await renderRoom();
+    start(conn);
+    deliver(conn, { t: "game.event", event: wrongHighC }, { t: "game.event", event: wrongHighD });
+    await screen.findByRole("dialog", { name: /Wrong declaration/ });
+    expect(within(dialog()).getByRole("heading", { name: setInfo("HIGH_C").full })).toBeTruthy();
+    expect(screen.getAllByRole("dialog")).toHaveLength(1);
+
+    fireEvent.click(within(dialog()).getByRole("button", { name: "Got it" }));
+    expect(within(dialog()).getByRole("heading", { name: setInfo("HIGH_D").full })).toBeTruthy();
+    expect(within(dialog()).getByText("Declared by Bob. The set is nullified.")).toBeTruthy();
+
+    fireEvent.click(within(dialog()).getByRole("button", { name: "Got it" }));
+    expect(screen.queryByRole("dialog")).toBeNull();
+  });
+
+  it("is dropped by a rematch rather than left over the lobby", async () => {
+    const conn = await renderRoom();
+    start(conn);
+    deliver(conn, { t: "game.event", event: wrongHighC });
+    await screen.findByRole("dialog", { name: /Wrong declaration/ });
+    deliver(conn, { t: "room.state", room: makeRoom({ status: "lobby" }) });
+    expect(screen.queryByRole("dialog")).toBeNull();
+    expect(screen.getByRole("heading", { name: "Table rules" })).toBeTruthy();
   });
 });
 
@@ -341,5 +438,21 @@ describe("RoomPage: game over", () => {
     expect(screen.getAllByText("Game over").length).toBeGreaterThan(0);
     expect(await screen.findByRole("heading", { name: "How the sets fell" }, { timeout: 3500 })).toBeTruthy();
     expect(screen.getByLabelText("Team A 5, Team B 3")).toBeTruthy();
+  });
+
+  it("keeps the last wrong declaration's reveal up when the game ends on it", async () => {
+    const conn = await renderRoom();
+    start(conn);
+    deliver(
+      conn,
+      { t: "game.event", event: wrongHighC },
+      { t: "game.event", event: { type: "gameOver", result: "A", scores: { A: 5, B: 3 } } },
+      { t: "room.state", room: finished() },
+      { t: "game.view", view: over, turnDeadline: null },
+    );
+    await screen.findByRole("dialog", { name: /Wrong declaration/ });
+    expect(screen.queryByRole("heading", { name: "How the sets fell" })).toBeNull();
+    expect(await screen.findByRole("heading", { name: "How the sets fell" }, { timeout: 3500 })).toBeTruthy();
+    expect(within(dialog()).getByRole("heading", { name: setInfo("HIGH_C").full })).toBeTruthy();
   });
 });

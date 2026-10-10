@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { SET_IDS, apply, cardsInSet, createGame, playerView, seededRng, setOf } from "../src/index.js";
-import type { Action, Assignment, GameState, PlayerSeat, Rng, SetId } from "../src/index.js";
+import type { Action, Assignment, GameEvent, GameState, PlayerSeat, Rng, SetId } from "../src/index.js";
 import { canonical, seats, snapshot } from "./helpers.js";
 
 const GAMES = 250;
@@ -29,6 +29,19 @@ function checkInvariants(s: GameState): void {
   if (s.phase.kind === "choose") {
     expect(s.phase.eligible.length).toBeGreaterThan(0);
     for (const id of s.phase.eligible) expect(s.hands[id]!.length, `eligible ${id} has cards`).toBeGreaterThan(0);
+  }
+}
+
+/** A declared event must say where the set's cards really were, and `correct` must agree with it. */
+function checkDeclared(before: GameState, events: GameEvent[]): void {
+  for (const event of events) {
+    if (event.type !== "declared") continue;
+    const cards = cardsInSet(event.set);
+    expect(Object.keys(event.holders), "holders cover exactly the set").toEqual([...cards]);
+    for (const card of cards) {
+      expect(before.hands[event.holders[card]!], `${card} was not with ${event.holders[card]}`).toContain(card);
+    }
+    expect(event.correct, "correct agrees with holders").toBe(cards.every((card) => event.holders[card] === event.assignment[card]));
   }
 }
 
@@ -105,6 +118,7 @@ function playGame(seed: number): { steps: number; state: GameState } {
     const result = apply(state, action, rng);
     expect(snapshot(state), "apply mutated its input").toBe(before);
     if (!result.ok) throw new Error(`seed ${seed}: legal move rejected ${snapshot(action)}: ${result.error.code}`);
+    checkDeclared(state, result.events);
     state = result.state;
     checkInvariants(state);
     steps++;

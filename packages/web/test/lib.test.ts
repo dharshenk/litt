@@ -5,7 +5,7 @@ import { apiUrl, getDevUser, loginUrl, setDevUser, wsUrl, DEV_NAME_PATTERN } fro
 import { cardFace, cardLabel, setInfo, sortCards } from "../src/lib/cards.js";
 import { playSound, setMuted } from "../src/lib/sound.js";
 import { readStorage, writeStorage } from "../src/lib/storage.js";
-import { declaredText, gameOverText, initials, joinNames, makeNamer, numberWord, timedOutText } from "../src/game/text.js";
+import { declarationResult, declaredText, gameOverText, initials, joinNames, makeNamer, numberWord, timedOutText } from "../src/game/text.js";
 
 const VS = "︎"; // text-presentation selector appended to suits
 
@@ -91,12 +91,20 @@ describe("text helpers", () => {
   });
 
   it("words declarations for humans", () => {
-    const base = { type: "declared", player: "maya", team: "A", set: "LOW_H", assignment: {} } as const;
+    const base = { type: "declared", player: "maya", team: "A", set: "LOW_H", assignment: {}, holders: {} } as const;
     const ev = (o: Partial<Extract<GameEvent, { type: "declared" }>>) => ({ ...base, correct: true, outcome: "WON_A", ...o }) as Extract<GameEvent, { type: "declared" }>;
     expect(declaredText(ev({}), namer)).toBe(`Maya declared Low ♥${VS} — correct. Team A +1`);
     expect(declaredText(ev({ player: "me" }), namer)).toBe(`You declared Low ♥${VS} — correct. Team A +1`);
     expect(declaredText(ev({ correct: false, outcome: "WON_B" }), namer)).toBe(`Maya declared Low ♥${VS} — wrong. Team B +1`);
     expect(declaredText(ev({ correct: false, outcome: "NULL" }), namer)).toBe(`Maya declared Low ♥${VS} — wrong. The set is nullified.`);
+  });
+
+  it("words what a declaration did to the score", () => {
+    const ev = (outcome: "WON_A" | "WON_B" | "NULL") =>
+      ({ type: "declared", player: "maya", team: "A", set: "LOW_H", assignment: {}, holders: {}, correct: false, outcome }) as const;
+    expect(declarationResult(ev("WON_A"))).toBe("Team A +1");
+    expect(declarationResult(ev("WON_B"))).toBe("Team B +1");
+    expect(declarationResult(ev("NULL"))).toBe("The set is nullified.");
   });
 
   it("words timeouts by phase", () => {

@@ -33,11 +33,16 @@ export function initials(name: string): string {
 
 export const teamLabel = (team: Team) => `Team ${team}`;
 
-export function declaredText(ev: Extract<GameEvent, { type: "declared" }>, n: Namer): string {
+export type DeclaredEvent = Extract<GameEvent, { type: "declared" }>;
+
+/** What a declaration did to the score: "Team A +1" or "The set is nullified." */
+export function declarationResult(ev: DeclaredEvent): string {
+  return ev.outcome === "NULL" ? "The set is nullified." : `Team ${ev.outcome === "WON_A" ? "A" : "B"} +1`;
+}
+
+export function declaredText(ev: DeclaredEvent, n: Namer): string {
   const set = setInfo(ev.set).name;
-  const result =
-    ev.outcome === "NULL" ? "The set is nullified." : `Team ${ev.outcome === "WON_A" ? "A" : "B"} +1`;
-  return `${n.name(ev.player)} declared ${set} — ${ev.correct ? "correct" : "wrong"}. ${result}`;
+  return `${n.name(ev.player)} declared ${set} — ${ev.correct ? "correct" : "wrong"}. ${declarationResult(ev)}`;
 }
 
 export function timedOutText(phaseBefore: Phase | null, n: Namer): string {

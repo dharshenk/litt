@@ -4,7 +4,7 @@ import type { ClientMessage, UserProfile } from "@litt/protocol";
 import { api, loginUrl } from "../lib/api.js";
 import { playSound } from "../lib/sound.js";
 import { canIChoose, isMyTurn } from "../game/legal.js";
-import { declaredText, gameOverText, makeNamer, timedOutText } from "../game/text.js";
+import { declaredText, gameOverText, makeNamer, timedOutText, type DeclaredEvent } from "../game/text.js";
 import { useRoomConnection } from "../net/useRoomConnection.js";
 import type { QueuedEvent } from "../net/roomState.js";
 import { DiscordButton, GoogleButton, Logo, ReconnectBanner, type BannerState } from "../components/Misc.js";
@@ -13,9 +13,16 @@ import { Lobby } from "../room/Lobby.js";
 import { GameOver } from "../room/GameOver.js";
 import { Table, type TableTab } from "../table/Table.js";
 import type { Spot } from "../table/AskSpotlight.js";
+import { DeclarationReveal } from "../table/DeclarationReveal.js";
 import styles from "./RoomPage.module.css";
 
 const GAME_OVER_DELAY_MS = 1800;
+
+/** A wrong declaration waiting to be shown; `id` is the event's id, unique across the connection. */
+interface Reveal {
+  id: number;
+  event: DeclaredEvent;
+}
 
 export function RoomPage() {
   const params = useParams();
@@ -48,6 +55,7 @@ function Room({ code, me }: { code: string; me: UserProfile }) {
   const toasts = useToasts();
   const { push, clear } = toasts;
   const [spot, setSpot] = useState<Spot | null>(null);
+  const [reveals, setReveals] = useState<Reveal[]>([]);
   const timers = useRef(new Set<ReturnType<typeof setTimeout>>());
 
   const meId = view?.me ?? me.id;
@@ -105,6 +113,8 @@ function Room({ code, me }: { code: string; me: UserProfile }) {
           const mine = ev.team === myTeam;
           push(declaredText(ev, namer), ev.correct ? "good" : "bad");
           playSound(ev.correct ? (mine ? "win" : "soft") : mine ? "wrong" : "got");
+          // A wrong declaration shows everyone who really held each card; a correct one has nothing new to show.
+          if (!ev.correct) setReveals((queue) => [...queue, { id, event: ev }]);
           break;
         }
         case "timedOut":
@@ -129,6 +139,12 @@ function Room({ code, me }: { code: string; me: UserProfile }) {
       prevEvent.current = ev.type;
     }
   }, [state.events, dispatch, later, meId, myTeam, namer, push]);
+
+  // A rematch starts a fresh game; reveals nobody dismissed from the last one no longer matter.
+  const inLobby = room?.status === "lobby";
+  useEffect(() => {
+    if (inLobby) setReveals([]);
+  }, [inLobby]);
 
   // ---- Rejected actions ----
   const lastErrorId = state.lastError?.id;
@@ -212,10 +228,22 @@ function Room({ code, me }: { code: string; me: UserProfile }) {
     );
   }
 
+  // Rendered here, not in Table, so the last set's reveal survives the switch to the game-over screen.
+  const reveal = reveals[0];
+
   return (
     <div className={styles.room}>
       {body}
       {!onTable && <ToastViewport placement="page" />}
+      {room && reveal && (
+        <DeclarationReveal
+          key={reveal.id}
+          event={reveal.event}
+          namer={namer}
+          teamOf={(id) => room.players.find((p) => p.id === id)?.team ?? null}
+          onClose={() => setReveals((queue) => queue.slice(1))}
+        />
+      )}
       <ReconnectBanner state={banner} />
     </div>
   );

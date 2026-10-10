@@ -149,9 +149,11 @@ Eligibility is restricted to players who still hold cards. This covers §34.1.4:
 
 ### 4.6 Events
 
-`askSucceeded`, `askFailed`, `declared { correct, outcome }`, `turnChanged`, `timedOut`, `gameOver`.
+`askSucceeded`, `askFailed`, `declared { assignment, holders, correct, outcome }`, `turnChanged`, `timedOut`, `gameOver`.
 
 Events are broadcast once and not stored. This is how a failed ask becomes a brief, one-time notice (§34.1.8).
+
+`declared.assignment` is what the declarer claimed. `declared.holders` is where each of the set's six cards really was, read from the hands just before they leave play. It equals `assignment` exactly when the declaration is correct (the engine derives `correct` from it), so a wrong declaration shows everyone who had what (§34.1.14).
 
 ### 4.7 Player view (hidden information)
 
@@ -164,6 +166,8 @@ Events are broadcast once and not stored. This is how a failed ask becomes a bri
 - the total transfer count and the list of set resolutions (who declared each set, whether it was correct, and the outcome). Both are public, and the game-over screen uses them.
 
 This is the **only** state shape that leaves the server for a game in progress. Tests assert that no other player's cards appear in it.
+
+The one deliberate exception is the `declared` event (§4.6), which names the holders of the six cards being declared. Those cards leave play at that moment, and a test asserts the event mentions no other card.
 
 ---
 
@@ -290,6 +294,7 @@ Table UI:
 - The 9 sets with their status, the score and the active player.
 - The last 3 transfers.
 - A toast for one-time events.
+- After a wrong declaration, a popup for every player shows who really held each of the set's six cards, with the declarer's mistakes marked. The room page renders it, not the table, so it survives the switch to the game-over screen. It stays until dismissed, and several queue in order.
 - Ask flow: pick a card from sets you hold (illegal cards disabled), then pick an opponent with cards.
 - Declare dialog: pick a set you hold, then assign each of its 6 cards to a teammate.
 

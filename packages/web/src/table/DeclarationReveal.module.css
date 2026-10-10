@@ -1,0 +1,178 @@
+.scrim {
+  position: absolute;
+  inset: 0;
+  z-index: 45;
+  background: var(--scrim);
+  display: grid;
+  /* Definite tracks, or the dialog's max-width/max-height: 100% can't bind and it overflows phones. */
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: minmax(0, 1fr);
+  place-items: center;
+  padding: 16px;
+  animation: fade 0.2s ease;
+}
+
+.dialog {
+  width: 440px;
+  max-width: 100%;
+  max-height: 100%;
+  /* Only the card list scrolls on a short screen, so the button to dismiss is never pushed out of reach. */
+  overflow: hidden;
+  border-radius: 20px;
+  background: var(--sheet);
+  border: 1px solid var(--line);
+  box-shadow: 0 40px 100px rgba(0, 0, 0, 0.4);
+  padding: 26px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  animation: pop 0.25s ease;
+  outline: none;
+}
+
+.head {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.kicker {
+  font: 600 11px var(--font-ui);
+  color: var(--bad);
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+}
+
+.title {
+  font: 400 34px/1.05 var(--font-display);
+}
+
+.summary {
+  font: 400 13px/1.5 var(--font-ui);
+  color: var(--mute);
+}
+
+.cards {
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.caption {
+  font: 500 11px var(--font-ui);
+  color: var(--mute);
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+}
+
+/* One shared set of columns, so names line up even beside the wide Joker chips. */
+.rows {
+  display: grid;
+  grid-template-columns: max-content minmax(0, 1fr) auto;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.row {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: subgrid;
+  align-items: center;
+  column-gap: 12px;
+  row-gap: 2px;
+  padding: 8px 12px;
+  border-radius: 12px;
+  border: 1px solid transparent;
+  background: var(--surf);
+}
+
+.row[data-wrong] {
+  background: color-mix(in oklch, var(--bad) 13%, transparent);
+  border-color: color-mix(in oklch, var(--bad) 38%, transparent);
+}
+
+.chip {
+  justify-self: start;
+  padding: 3px 8px;
+  border-radius: 6px;
+  font-size: 13px;
+}
+
+.who {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.name {
+  font: 500 14px var(--font-ui);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.verdict {
+  font: 600 14px var(--font-ui);
+  color: var(--ok);
+}
+
+.row[data-wrong] .verdict {
+  color: var(--bad);
+}
+
+/* Under the real holder: who the declarer wrongly named. */
+.claim {
+  grid-column: 2 / -1;
+  font: 500 12px var(--font-ui);
+  color: var(--bad);
+}
+
+.close {
+  height: 48px;
+  border: 0;
+  border-radius: 12px;
+  background: var(--A);
+  color: var(--onA);
+  font: 600 14px var(--font-ui);
+}
+
+@media (max-width: 819.98px) {
+  .dialog {
+    padding: 24px 20px 20px;
+    border-radius: 22px;
+  }
+  .title {
+    font-size: 30px;
+  }
+  .close {
+    height: 52px;
+    border-radius: 14px;
+    font-size: 16px;
+  }
+}
+
+@keyframes fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes pop {
+  from {
+    transform: translateY(10px) scale(0.98);
+    opacity: 0;
+  }
+  to {
+    transform: none;
+    opacity: 1;
+  }
+}

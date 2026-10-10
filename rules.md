@@ -920,6 +920,7 @@ These resolve the open questions in §32 and other implementation-level gaps.
 11. **Out-of-cards is public** — exact hand sizes stay hidden (34.1.7), but whether a player has zero cards is visible to everyone.
 12. **Turn timer expiry** — the turn passes to a random opponent who still holds cards.
 13. **Incorrect declaration when the opposing team has no cards** — the declaring team keeps the turn and chooses which of its players takes it.
+14. **Incorrect declaration reveals the cards** — everyone is shown who actually held each of the set's six cards. The set leaves play, so no other hand is exposed.
 
 ### 34.2 Room configuration (set by host before the game)
 

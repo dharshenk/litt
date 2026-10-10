@@ -220,7 +220,7 @@ export class MockServer {
         const resolutions = [...view.resolutions, { set: msg.set, declaredBy: P.me, team, correct: true, outcome } as const];
         const players = view.players.map((p) => (p.id === P.me ? { ...p, outOfCards: hand.length === 0 } : p));
         const events: GameEvent[] = [
-          { type: "declared", player: P.me, team, set: msg.set, assignment: msg.assignment, correct: true, outcome },
+          { type: "declared", player: P.me, team, set: msg.set, assignment: msg.assignment, holders: msg.assignment, correct: true, outcome },
         ];
         const next: PlayerView = { ...view, hand, sets, scores, resolutions, players };
 

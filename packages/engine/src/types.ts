@@ -95,7 +95,13 @@ export type GameEvent =
       player: string;
       team: Team;
       set: SetId;
+      /** What the declarer claimed: who holds each of the set's 6 cards. */
       assignment: Assignment;
+      /**
+       * Where each of the set's 6 cards really was. Public once declared: the cards leave
+       * play, and a wrong declaration shows everyone who had what. Equals `assignment` when correct.
+       */
+      holders: Assignment;
       correct: boolean;
       outcome: Exclude<SetStatus, "ACTIVE">;
     }

@@ -171,6 +171,7 @@ export const SCENARIOS: Scenario[] = [
           { kind: "choose", chooser: { player: P.maya }, eligible: [P.me, P.maya, P.eve], reason: "correctDeclaration" },
           { resolved: [...MID_RESOLVED, ["LOW_C", P.maya, true, "WON_A"]] },
         );
+        const assignment = { "2C": P.maya, "3C": P.eve, "4C": P.me, "5C": P.maya, "6C": P.maya, "7C": P.eve };
         ctx.server.apply(
           [
             {
@@ -178,7 +179,8 @@ export const SCENARIOS: Scenario[] = [
               player: P.maya,
               team: "A",
               set: "LOW_C",
-              assignment: { "2C": P.maya, "3C": P.eve, "4C": P.me, "5C": P.maya, "6C": P.maya, "7C": P.eve },
+              assignment,
+              holders: assignment,
               correct: true,
               outcome: "WON_A",
             },
@@ -208,6 +210,8 @@ export const SCENARIOS: Scenario[] = [
               team: "B",
               set: "HIGH_C",
               assignment: { "9C": P.bob, "10C": P.priya, JC: P.bob, QC: P.frank, KC: P.priya, AC: P.bob },
+              // 10C was in my hand and AC with Priya, so two of Bob's six calls were wrong.
+              holders: { "9C": P.bob, "10C": P.me, JC: P.bob, QC: P.frank, KC: P.priya, AC: P.priya },
               correct: false,
               outcome: "WON_A",
             },

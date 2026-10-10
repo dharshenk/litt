@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { cardsInSet, setOf } from "../src/index.js";
-import type { Assignment, Card, SetId } from "../src/index.js";
+import { ALL_CARDS, cardsInSet, setOf } from "../src/index.js";
+import type { Assignment, Card, GameEvent, SetId } from "../src/index.js";
 import {
   HIGH_S_ASSIGNMENT,
   LOW_H_ASSIGNMENT,
@@ -35,6 +35,7 @@ describe("declare: correct", () => {
       team: "A",
       set: "LOW_H",
       assignment: LOW_H_ASSIGNMENT,
+      holders: LOW_H_ASSIGNMENT,
       correct: true,
       outcome: "WON_A",
     });
@@ -98,6 +99,70 @@ describe("declare: wrong", () => {
     const state = teamAGame({ mode: "null", hands: { a3: [], b1: ["6H", "7H"] } });
     const { state: next } = run(state, declare("a1", "LOW_H", LOW_H_ASSIGNMENT));
     expect(next.sets.LOW_H).toBe("NULL");
+  });
+});
+
+describe("declare: holders", () => {
+  type Declared = Extract<GameEvent, { type: "declared" }>;
+  const declaredEvent = (events: GameEvent[]): Declared => events.find((e): e is Declared => e.type === "declared")!;
+
+  it("reports where each card really was, apart from what the declarer claimed", () => {
+    const { events } = run(wrongGame(), declare("a1", "LOW_H", LOW_H_ASSIGNMENT));
+    const event = declaredEvent(events);
+    expect(event.assignment).toEqual(LOW_H_ASSIGNMENT);
+    expect(event.holders).toEqual({ ...LOW_H_ASSIGNMENT, "7H": "b1" });
+  });
+
+  it("lists exactly the set's six cards, in set order", () => {
+    const { events } = run(wrongGame(), declare("a1", "LOW_H", LOW_H_ASSIGNMENT));
+    expect(Object.keys(declaredEvent(events).holders)).toEqual([...cardsInSet("LOW_H")]);
+  });
+
+  it("matches the claim exactly when the declaration is correct", () => {
+    for (const [set, assignment] of [["LOW_H", LOW_H_ASSIGNMENT], ["HIGH_S", HIGH_S_ASSIGNMENT]] as const) {
+      const event = declaredEvent(run(teamAGame(), declare("a1", set, assignment)).events);
+      expect(event.correct).toBe(true);
+      expect(event.holders).toEqual(event.assignment);
+    }
+  });
+
+  it("can name a teammate or an opponent as the real holder", () => {
+    const swapped = { ...LOW_H_ASSIGNMENT, "2H": "a2" };
+    const event = declaredEvent(run(wrongGame(), declare("a1", "LOW_H", swapped)).events);
+    expect(event.correct).toBe(false);
+    expect(event.holders["2H"]).toBe("a1");
+    expect(event.holders["7H"]).toBe("b1");
+  });
+
+  it("shows the real holder when the claimed player has no cards at all", () => {
+    const state = teamAGame({ mode: "null", hands: { a3: [], b1: ["6H", "7H"] } });
+    const event = declaredEvent(run(state, declare("a1", "LOW_H", LOW_H_ASSIGNMENT)).events);
+    expect(event.holders).toMatchObject({ "6H": "b1", "7H": "b1" });
+  });
+
+  it("is reported in both wrong-declaration modes", () => {
+    for (const mode of ["award", "null"] as const) {
+      const event = declaredEvent(run(wrongGame(mode), declare("a1", "LOW_H", LOW_H_ASSIGNMENT)).events);
+      expect(event.holders["7H"], mode).toBe("b1");
+    }
+  });
+
+  it("is correct exactly when it equals the claim", () => {
+    const claims = [LOW_H_ASSIGNMENT, { ...LOW_H_ASSIGNMENT, "2H": "a2" }, { ...LOW_H_ASSIGNMENT, "7H": "a1" }];
+    for (const game of [teamAGame(), wrongGame()]) {
+      for (const claim of claims) {
+        const event = declaredEvent(run(game, declare("a1", "LOW_H", claim)).events);
+        expect(event.correct).toBe(cardsInSet("LOW_H").every((card) => event.holders[card] === event.assignment[card]));
+      }
+    }
+  });
+
+  it("reveals nothing about cards outside the declared set", () => {
+    const event = declaredEvent(run(wrongGame(), declare("a1", "LOW_H", LOW_H_ASSIGNMENT)).events);
+    const json = JSON.stringify(event);
+    for (const card of ALL_CARDS) {
+      if (setOf(card) !== "LOW_H") expect(json, `${card} leaked`).not.toContain(`"${card}"`);
+    }
   });
 });
 
